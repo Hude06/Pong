@@ -12,7 +12,7 @@ let side = null;
 let SpeedX = 5;
 let RANDOMENUM = null;
 let soundEFX1 = new Audio('/explosion.wav');
-let soundEFX2 = new Audio('/ping_pong_8bit_beeep.wav');
+let soundEFX2 = new Audio('/click.wav');
 
 RANDOMENUM = getRndInteger(-5,5);
 BallY += RANDOMENUM;
@@ -27,12 +27,17 @@ var BallY = 200
 var R = 5;
 let BallWidth = 10;
 let BallHight = 10
+let AISpeed = 1;
+
 let cureentKeys = new Map;
 let collided = false;
-
 function getRndInteger(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
-  }
+}
+function LevelSelector() {
+    ctx.fillStyle = "red"
+    ctx.fillRect(0,0,100,100);
+}
 function drawPlayer(ctx) {
     // clear screen
     ctx.fillStyle = "#f0f6f0"
@@ -42,8 +47,6 @@ function drawPlayer(ctx) {
     ctx.fillRect(computerPosX, computerPosy, sizeX, sizeY/2);
     ctx.fillRect(computerPosX, computerPosy+35, sizeX, sizeY/2);
     ctx.fillRect(BallX, BallY, BallWidth,BallHight);
-    
-
 }
 function checkSide() {
     //Side 1 = Right Side
@@ -108,6 +111,7 @@ function move_ball(){
 }
 function checkScore() {
     if (BallX <= 50) {
+        soundEFX1.currentTime = 0.1;
         soundEFX1.play();
         SpeedX *= -1;
         ballLive = false;
@@ -117,29 +121,42 @@ function checkScore() {
             }, 500)
     }
     if (BallX >= 950) {
+        soundEFX1.currentTime = 0.1;
         soundEFX1.play();
         SpeedX *= -1;
         ballLive = false;
         BallReset();
         setTimeout(() => {
             scorePlayer += 1
-            },500)
+            if (scorePlayer > scoreComputer) {
+                    AISpeed++;
+                    console.log(AISpeed)
+            }        
+        },500)
     }
 }
-function keyboard() {
-    if (cureentKeys.get("Enter") === true) {
+let splash = null
+function checkSplash() {
+    if (splash === true) {
         splashScreen.style.opacity = 0;
+
         ballLive = true;
         setTimeout(()=>{
             splashScreen.classList.add('hidden')
             
         },610)
     }
+}
+function keyboard() {
+    if (cureentKeys.get("Enter") === true) {
+        splash = true;
+
+    }
     if (cureentKeys.get('w') === true) {
-        playerPosY -= 3;
+        playerPosY -= 5;
     }
     if (cureentKeys.get("s") === true) {
-        playerPosY += 3;
+        playerPosY += 5;
 
     }
 
@@ -152,6 +169,8 @@ function DrawNet(ctx) {
     }
 }
 function BallReset() {
+    soundEFX1 = new Audio('/explosion.wav');
+    soundEFX2 = new Audio('/click.wav');
     collidedWallBottom = false
     collidedWallTop = false
     collided = false;
@@ -185,7 +204,6 @@ function SqueeseBallBasedOnSpeed() {
     //     // }
     // },2000)
 }
-let AISpeed = 2;
 function checkWall() {
     if (BallY <= 0){
         collidedWallTop = true
@@ -209,18 +227,24 @@ function checkWall() {
 }
 function checkIfColoided() {
     if (collidedWallTop === true) {
-        RANDOMENUM = getRndInteger(1,5);
         soundEFX2.play();
+        RANDOMENUM = getRndInteger(1,5);
+        console.log("MUSIC PLAY")
 
 
     }
     if (collidedWallBottom === true) {
-        RANDOMENUM = RANDOMENUM = getRndInteger(-5,0);
         soundEFX2.play();
+        console.log("MUSIC PLAY")
+
+        RANDOMENUM = RANDOMENUM = getRndInteger(-5,0);
+
 
     }
     if (collided === true) {
         soundEFX2.play();
+        console.log("MUSIC PLAY")
+
         RANDOMENUM = getRndInteger(-5,5);
         collided = false;
     }
@@ -229,6 +253,7 @@ function checkIfColoided() {
     collided = false;
     BallY += RANDOMENUM;
 }
+let AIRunned = false;
 function AI() {
     if (computerPosy + 35 <= BallY)
     computerPosy += AISpeed;
@@ -243,6 +268,7 @@ function draw_score(ctx) {
 }
 
 function update() {
+    checkSplash();
     //input
     keyboard();
     //movement / physics
