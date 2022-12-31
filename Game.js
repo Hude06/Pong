@@ -67,7 +67,7 @@ var BallY = 200
 var R = 5;
 let BallWidth = 10;
 let BallHight = 10
-let AISpeed = 1;
+let AISpeed = 2;
 
 let cureentKeys = new Map;
 let collided = false;
@@ -153,16 +153,14 @@ function checkScore() {
         BallSpeedX *= -1;
         ballLive = false;
         if (bots === true) {
-            BallSpeedX += 0.2;
+            BallSpeedX += numberToAdd;
 
         }
         BallReset();
         setTimeout(() => {
             scoreComputer += 1
             if (scorePlayer < scoreComputer) {
-                PlayerAiSpeed++;
-                
-
+                PlayerAiSpeed += numberToAdd;
                 console.log("PlayerSpeed = "+ PlayerAiSpeed)
                 console.log("BallSpeed = "+ BallSpeedX)
 
@@ -172,7 +170,7 @@ function checkScore() {
     }
     if (BallX >= 950) {
         if (bots === true) {
-            BallSpeedX += 0.2;
+            BallSpeedX += numberToAdd;
 
         }        soundEFX1.currentTime = 0.1;
         soundEFX1.play();
@@ -183,7 +181,7 @@ function checkScore() {
             scorePlayer += 1       
 
             if (scorePlayer > scoreComputer) {
-                    AISpeed++;
+                    AISpeed += numberToAdd;
                     console.log("AiSpeed = "+ AISpeed)
                     console.log("BallSpeed = "+ BallSpeedX)
 
@@ -191,6 +189,22 @@ function checkScore() {
         },500)
     }
 }
+let numberToAdd = 0.05;
+function checkIfPositive() {
+
+    let number = BallSpeedX;
+
+    // true if number is less than 0
+    if (number < 0.0)
+    numberToAdd = -1;
+    // true if number is greater than 0
+    else if ( number > 0.0)
+    numberToAdd = 1;
+    // if both test expression is evaluated to false
+    else
+        System.out.println(number + " is 0.");
+}
+
 let splash = null
 function checkSplash() {
     if (splash === true) {
@@ -267,7 +281,7 @@ function checkWall() {
     }
 
 }
-let PlayerAiSpeed = 1;
+let PlayerAiSpeed = 2;
 function playerAI() {
     if (playerPosY + 35 <= BallY)
     playerPosY += PlayerAiSpeed;
@@ -279,6 +293,10 @@ function checkIfColoided() {
         soundEFX2.play();
         RANDOMENUM = getRndInteger(1,5);
         console.log("MUSIC PLAY")
+        if (bots === true) {
+            BallSpeedX += numberToAdd;
+
+        }
 
 
     }
@@ -287,6 +305,12 @@ function checkIfColoided() {
         console.log("MUSIC PLAY")
 
         RANDOMENUM = RANDOMENUM = getRndInteger(-5,0);
+        if (bots === true) {
+            BallSpeedX += numberToAdd;
+            console.log(BallSpeedX)
+
+
+        }
 
 
     }
@@ -297,6 +321,11 @@ function checkIfColoided() {
 
         RANDOMENUM = getRndInteger(-5,5);
         collided = false;
+        if (bots === true) {
+            BallSpeedX += numberToAdd;
+            console.log(BallSpeedX)
+
+        }
     }
     collidedWallTop = false
     collidedWallBottom = false;
@@ -323,6 +352,7 @@ function setPlayerRunning() {
 
 }
 function update() {
+    checkIfPositive();
     checkSplash();
     //input
     keyboard();
