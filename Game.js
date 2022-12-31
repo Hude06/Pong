@@ -172,19 +172,18 @@ function checkScore() {
         if (bots === true) {
             BallSpeedX += numberToAdd;
 
-        }        soundEFX1.currentTime = 0.1;
+        } 
+        soundEFX1.currentTime = 0.1;
         soundEFX1.play();
         BallSpeedX *= -1;
         ballLive = false;
         BallReset();
         setTimeout(() => {
-            scorePlayer += 1       
-
+            scorePlayer += 1;
             if (scorePlayer > scoreComputer) {
                     AISpeed += numberToAdd;
                     console.log("AiSpeed = "+ AISpeed)
                     console.log("BallSpeed = "+ BallSpeedX)
-
             } 
         },500)
     }
