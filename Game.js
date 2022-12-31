@@ -11,6 +11,9 @@ let computerPosy = 265;
 let side = null;
 let SpeedX = 5;
 let RANDOMENUM = null;
+let soundEFX1 = new Audio('/explosion.wav');
+let soundEFX2 = new Audio('/ping_pong_8bit_beeep.wav');
+
 RANDOMENUM = getRndInteger(-5,5);
 BallY += RANDOMENUM;
 let collidedWallBottom = null;
@@ -22,7 +25,7 @@ let screenShaking = false
 var BallX = 400;
 var BallY = 200
 var R = 5;
-let BallWidth = 15
+let BallWidth = 10;
 let BallHight = 10
 let cureentKeys = new Map;
 let collided = false;
@@ -105,6 +108,7 @@ function move_ball(){
 }
 function checkScore() {
     if (BallX <= 50) {
+        soundEFX1.play();
         SpeedX *= -1;
         ballLive = false;
         BallReset();
@@ -113,18 +117,16 @@ function checkScore() {
             }, 500)
     }
     if (BallX >= 950) {
+        soundEFX1.play();
         SpeedX *= -1;
         ballLive = false;
         BallReset();
-
-
         setTimeout(() => {
             scorePlayer += 1
             },500)
     }
 }
 function keyboard() {
-    console.log(cureentKeys)
     if (cureentKeys.get("Enter") === true) {
         splashScreen.style.opacity = 0;
         ballLive = true;
@@ -157,6 +159,8 @@ function BallReset() {
     playerPosY = 165;
     computerPosX = 900;
     computerPosy = 265;
+    BallWidth = 10;
+    BallHight = 10;
     side = null;
     SpeedX = 5;
     ballLive = true;
@@ -168,7 +172,18 @@ function BallReset() {
     BallY += RANDOMENUM;
 }
 function SqueeseBallBasedOnSpeed() {
+    if (collided === true) {
+        // console.log("BALLWIDTH += 1")
+        // BallWidth += 10;
+    }
+    // setTimeout(() => {
+    //     // BallWidth -= 5;
+    //     // if (BallWidth === 10) {
+    //     //     BallWidth += 5;
+    //     //     return
 
+    //     // }
+    // },2000)
 }
 let AISpeed = 2;
 function checkWall() {
@@ -195,17 +210,19 @@ function checkWall() {
 function checkIfColoided() {
     if (collidedWallTop === true) {
         RANDOMENUM = getRndInteger(1,5);
-        console.log(RANDOMENUM)
+        soundEFX2.play();
+
 
     }
     if (collidedWallBottom === true) {
         RANDOMENUM = RANDOMENUM = getRndInteger(-5,0);
-        console.log("Bottom = "+ RANDOMENUM)
+        soundEFX2.play();
+
     }
     if (collided === true) {
+        soundEFX2.play();
         RANDOMENUM = getRndInteger(-5,5);
         collided = false;
-        console.log(RANDOMENUM)
     }
     collidedWallTop = false
     collidedWallBottom = false;
@@ -236,6 +253,7 @@ function update() {
         move_ball();
         checkScore();
         checkSide();
+        SqueeseBallBasedOnSpeed()
     }
     var ctx = c.getContext("2d");
     ctx.save()
