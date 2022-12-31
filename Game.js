@@ -22,6 +22,8 @@ let screenShaking = false
 var BallX = 400;
 var BallY = 200
 var R = 5;
+let BallWidth = 15
+let BallHight = 10
 let cureentKeys = new Map;
 let collided = false;
 
@@ -36,11 +38,8 @@ function drawPlayer(ctx) {
     ctx.fillRect(playerPosX, playerPosY+35, sizeX, sizeY/2);
     ctx.fillRect(computerPosX, computerPosy, sizeX, sizeY/2);
     ctx.fillRect(computerPosX, computerPosy+35, sizeX, sizeY/2);
-    if (ballLive === true) {
-        ctx.beginPath();
-        ctx.arc(BallX, BallY, R, 0, 10 * Math.PI, false);
-        ctx.fill();
-    }
+    ctx.fillRect(BallX, BallY, BallWidth,BallHight);
+    
 
 }
 function checkSide() {
@@ -78,7 +77,6 @@ function move_ball(){
                 SpeedX *= -1
                 runned = true;
                 screenShaking = true;
-
                 setTimeout(() => {
                     screenShaking = false;
 
@@ -106,7 +104,7 @@ function move_ball(){
     runned2 = false;
 }
 function checkScore() {
-    if (BallX <= 20) {
+    if (BallX <= 50) {
         SpeedX *= -1;
         ballLive = false;
         BallReset();
@@ -114,7 +112,7 @@ function checkScore() {
             scoreComputer += 1
             }, 500)
     }
-    if (BallX >= 1000) {
+    if (BallX >= 950) {
         SpeedX *= -1;
         ballLive = false;
         BallReset();
@@ -169,11 +167,13 @@ function BallReset() {
     RANDOMENUM = getRndInteger(-5,5);
     BallY += RANDOMENUM;
 }
-let AISpeed = 1;
+function SqueeseBallBasedOnSpeed() {
+
+}
+let AISpeed = 2;
 function checkWall() {
     if (BallY <= 0){
         collidedWallTop = true
-
         screenShaking = true;
         setTimeout(() => {
             screenShaking = false;
