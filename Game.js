@@ -13,6 +13,44 @@ let SpeedX = 5;
 let RANDOMENUM = null;
 let soundEFX1 = new Audio('/explosion.wav');
 let soundEFX2 = new Audio('/click.wav');
+let playeraiRunning = false;
+let parts = []
+function setup_particles() {
+    for(let i=0; i<100; i++) {
+        parts.push({
+            pos: {
+                x:0,
+                y:0,
+            },
+            vel: {
+                x:Math.random(),
+                y:Math.random(),
+            },
+            alive:true,
+            age:0,
+        })
+    }
+}
+function update_particles() {
+    parts.forEach(part => {
+        part.pos.x += part.vel.x
+        part.pos.y += part.vel.y
+        part.age += 1
+        if(part.age > 100) {
+            part.alive = false
+        }
+    })
+}
+function draw_particles() {
+    for(let i=0; i<parts.length; i++) {
+        let part = parts[i]
+        if(part.alive) {
+            ctx.fillStyle = `rgba(255,0,0,${100-part.age}%)`
+            ctx.fillRect(part.pos.x, part.pos.y, 10,10)
+        }
+    }
+}
+
 
 RANDOMENUM = getRndInteger(-5,5);
 BallY += RANDOMENUM;
@@ -118,6 +156,11 @@ function checkScore() {
         BallReset();
         setTimeout(() => {
             scoreComputer += 1
+            if (scorePlayer < scoreComputer) {
+                PlayerAiSpeed++;
+                console.log("PlayerSpeed = "+ PlayerAiSpeed)
+
+            }
             }, 500)
     }
     if (BallX >= 950) {
@@ -127,11 +170,12 @@ function checkScore() {
         ballLive = false;
         BallReset();
         setTimeout(() => {
-            scorePlayer += 1
+            scorePlayer += 1       
+
             if (scorePlayer > scoreComputer) {
                     AISpeed++;
-                    console.log(AISpeed)
-            }        
+                    console.log("AiSpeed = "+ AISpeed)
+            } 
         },500)
     }
 }
@@ -214,7 +258,7 @@ function checkWall() {
 
         }, 100)
     }
-    if (BallY >= 600){
+    if (BallY >= c.height){
         collidedWallBottom = true;
         screenShaking = true;
 
@@ -224,6 +268,13 @@ function checkWall() {
         }, 100)
     }
 
+}
+let PlayerAiSpeed = 1;
+function playerAI() {
+    if (playerPosY + 35 <= BallY)
+    playerPosY += PlayerAiSpeed;
+    if (playerPosY+35 >= BallY)
+    playerPosY -= PlayerAiSpeed;
 }
 function checkIfColoided() {
     if (collidedWallTop === true) {
@@ -266,7 +317,10 @@ function draw_score(ctx) {
     ctx.fillText(scoreComputer, 750, 50);
 
 }
+function setPlayerRunning() {
+    playeraiRunning = !playeraiRunning;
 
+}
 function update() {
     checkSplash();
     //input
@@ -274,12 +328,17 @@ function update() {
     //movement / physics
     if (ballLive === true) {
         checkIfColoided();
+        if (playeraiRunning === true) {
+            playerAI();
+        }
+        update_particles();
         AI();
         checkWall();
         move_ball();
         checkScore();
         checkSide();
         SqueeseBallBasedOnSpeed()
+
     }
     var ctx = c.getContext("2d");
     ctx.save()
@@ -290,10 +349,12 @@ function update() {
     drawPlayer(ctx);
     DrawNet(ctx);
     draw_score(ctx);
+    draw_particles();
     ctx.restore()
 
     window.requestAnimationFrame(update);
 }
+setup_particles()
 sertupkeyboard();
 update();
 
