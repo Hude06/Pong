@@ -161,9 +161,6 @@ function checkScore() {
     }, 500);
   }
   if (ball.x >= 950) {
-    if (bots === true) {
-      ball.speed += 0.2;
-    }
     soundEFX1.currentTime = 0.1;
     soundEFX1.play();
     ball.speed *= -1;
@@ -198,7 +195,7 @@ function checkWall() {
       screenShaking = false;
     }, 100);
   }
-  if (ball.y >= c.height) {
+  if (ball.y >= 650) {
     collidedWallBottom = true;
     screenShaking = true;
 
@@ -255,7 +252,7 @@ function update_particles() {
 }
 function update_Ball() {
   ball.x += ball.speed;
-  if (ball.x <= 120) {
+  if (ball.x === 115) {
     if (ball.y >= player.posY && ball.y <= player.posY + 70)
       if (runned === false) {
         console.log("Colided");
@@ -268,7 +265,7 @@ function update_Ball() {
         }, 200);
       }
   }
-  if (ball.x >= 880) {
+  if (ball.x === 880) {
     if (ball.y >= computer.posY && ball.y <= computer.posY + 71)
       if (runned2 === false) {
         console.log("Colided");
