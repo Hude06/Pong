@@ -1,21 +1,80 @@
 var c = document.getElementById("Game");
 var ctx = c.getContext("2d");
 var splashScreen = document.querySelector('.splash')
-let ballLive = false;
-let sizeX = 10;
-let sizeY = 70;
-let playerPosX = 100;
-let playerPosY = 165;
-let computerPosX = 900;
-let computerPosy = 265;
-let side = null;
-let BallSpeedX = 5;
+let ball = {
+    x: 400,
+    y: 200,
+    r: 5,
+    width: 10,
+    height: 10,
+    speed: 5,
+    alive: false,
+
+}
+let player = {
+    score: 0,
+    posX: 100,
+    posY: 165
+}
+let paddle = {
+    sizeX:10,
+    sizeY:70,
+}
+let computer = {
+    posX: 900,
+    posY: 265,
+    score: 0,
+}
+let PlayerAiSpeed = 1;
+let AIRunned = false;
+let bots = false;
+let splash = null
 let RANDOMENUM = null;
 let soundEFX1 = new Audio('/explosion.wav');
 let soundEFX2 = new Audio('/click.wav');
 let playeraiRunning = false;
 let parts = []
-
+RANDOMENUM = getRndInteger(-5,5);
+ball.y += RANDOMENUM;
+let collidedWallBottom = null;
+let collidedWallTop = null;
+let screenShaking = false
+let AISpeed = 1;
+let cureentKeys = new Map;
+let collided = false;
+const radius = 70;
+let runned = false;
+let runned2 = false;
+ctx.font = "50px pacifico_font"
+ctx.fillStyle = "#f0f6f0"
+ctx.fillText(player.score, 200, 50);
+ctx.fillText(computer.score, 550, 50);
+function BallReset() {
+    collidedWallBottom = false
+    collidedWallTop = false
+    collided = false;
+    player.posX = 100;
+    player.posY = 165;
+    computer.posX = 900;
+    computer.posY = 265;
+    ball.width = 10;
+    ball.height = 10;
+    side = null;
+    ball.alive = true;
+    screenShaking = false
+    ball.x = 400;
+    ball.y = 200
+    RANDOMENUM = getRndInteger(-5,5);
+    ball.y += RANDOMENUM;
+}
+function sertupkeyboard() {
+    window.addEventListener('keydown', function(event) {
+        cureentKeys.set(event.key,true);
+    });
+    window.addEventListener('keyup', function(event) {
+        cureentKeys.set(event.key,false);
+    });
+}
 function start_particles(x,y) {
     parts = []
     for(let i=0; i<50; i++) {
@@ -33,15 +92,11 @@ function start_particles(x,y) {
         })
     }
 }
-function update_particles() {
-    parts.forEach(part => {
-        part.pos.x += part.vel.x
-        part.pos.y += part.vel.y
-        part.age += 1
-        if(part.age > 50) {
-            part.alive = false
-        }
-    })
+function draw_score(ctx) {
+    ctx.font = "48px serif";
+    ctx.fillText(player.score, 250, 50);
+    ctx.fillText(computer.score, 750, 50);
+
 }
 function draw_particles() {
     for(let i=0; i<parts.length; i++) {
@@ -52,170 +107,15 @@ function draw_particles() {
         }
     }
 }
-
-
-RANDOMENUM = getRndInteger(-5,5);
-BallY += RANDOMENUM;
-let collidedWallBottom = null;
-let collidedWallTop = null;
-var pacifico_font = new FontFace('CourierCocoW00-Regular', 'url(db.onlinewebfonts.com/t/ca7fab70d3dbd232a157600131e4c9dd.eot)');
-let scorePlayer = 0;
-let scoreComputer = 0
-let screenShaking = false
-var BallX = 400;
-var BallY = 200
-var R = 5;
-let BallWidth = 10;
-let BallHight = 10
-let AISpeed = 1;
-
-let cureentKeys = new Map;
-let collided = false;
-function getRndInteger(min, max) {
-    return Math.floor(Math.random() * (max - min)) + min;
-}
 function drawPlayer(ctx) {
     // clear screen
     ctx.fillStyle = "#f1f2da"
     ctx.clearRect(0, 0, c.width, c.height);
-    ctx.fillRect(playerPosX, playerPosY, sizeX, sizeY/2);
-    ctx.fillRect(playerPosX, playerPosY+35, sizeX, sizeY/2);
-    ctx.fillRect(computerPosX, computerPosy, sizeX, sizeY/2);
-    ctx.fillRect(computerPosX, computerPosy+35, sizeX, sizeY/2);
-    ctx.fillRect(BallX, BallY, BallWidth,BallHight);
-}
-function checkSide() {
-    //Side 1 = Right Side
-    //Side 2 = Left Side
-     if (BallX >= 500) {
-        side = 1;
-     }
-     if (BallX <= 500) {
-        side = 2;
-     }
-}
-const radius = 70;
-let runned = false;
-let runned2 = false;
-ctx.font = "50px pacifico_font"
-ctx.fillStyle = "#f0f6f0"
-ctx.fillText(scorePlayer, 200, 50);
-ctx.fillText(scoreComputer, 550, 50);
-function sertupkeyboard() {
-    window.addEventListener('keydown', function(event) {
-        cureentKeys.set(event.key,true);
-    });
-    window.addEventListener('keyup', function(event) {
-        cureentKeys.set(event.key,false);
-    });
-}
-function move_ball(){
-        BallX += BallSpeedX
-    if (BallX <= 120) {
-        if (BallY >= playerPosY && BallY <= playerPosY + 70)
-            if (runned === false) {
-                console.log("Colided")
-                collided = true
-                BallSpeedX *= -1
-                runned = true;
-                screenShaking = true;
-                setTimeout(() => {
-                    screenShaking = false;
-
-                }, 200) 
-        }
-
-    }
-    if (BallX >= 880) {
-        if (BallY >= computerPosy && BallY <= computerPosy + 71)
-        if (runned2 === false) {
-            console.log("Colided")
-            collided = true
-            BallSpeedX *= -1
-            runned2 = true;
-            screenShaking = true;
-
-            setTimeout(() => {
-                screenShaking = false;
-
-            }, 200)
-        }
-
-    }
-    runned = false;
-    runned2 = false;
-}
-let bots = false;
-function checkScore() {
-    if (BallX <= 0) {
-        soundEFX1.currentTime = 0.1;
-        soundEFX1.play();
-        BallSpeedX *= -1;
-        ballLive = false;
-        if (bots === true) {
-            BallSpeedX += 0.2;
-
-        }
-        BallReset();
-        setTimeout(() => {
-            scoreComputer += 1
-            if (scorePlayer < scoreComputer) {
-                PlayerAiSpeed++;
-                
-
-                console.log("PlayerSpeed = "+ PlayerAiSpeed)
-                console.log("BallSpeed = "+ BallSpeedX)
-
-
-            }
-            }, 500)
-    }
-    if (BallX >= 950) {
-        if (bots === true) {
-            BallSpeedX += 0.2;
-
-        }        soundEFX1.currentTime = 0.1;
-        soundEFX1.play();
-        BallSpeedX *= -1;
-        ballLive = false;
-        BallReset();
-        setTimeout(() => {
-            scorePlayer += 1       
-
-            if (scorePlayer > scoreComputer) {
-                    AISpeed++;
-                    console.log("AiSpeed = "+ AISpeed)
-                    console.log("BallSpeed = "+ BallSpeedX)
-
-            } 
-        },500)
-    }
-}
-let splash = null
-function checkSplash() {
-    if (splash === true) {
-        splashScreen.style.opacity = 0;
-
-        ballLive = true;
-        setTimeout(()=>{
-            splashScreen.classList.add('hidden')
-            
-        },610)
-    }
-}
-function keyboard() {
-    if (cureentKeys.get("Enter") === true) {
-        splash = true;
-
-    }
-    if (cureentKeys.get('w') === true) {
-        playerPosY -= 5;
-    }
-    if (cureentKeys.get("s") === true) {
-        playerPosY += 5;
-
-    }
-
+    ctx.fillRect(player.posX, player.posY, paddle.sizeX, paddle.sizeY/2);
+    ctx.fillRect(player.posX, player.posY+35, paddle.sizeX, paddle.sizeY/2);
+    ctx.fillRect(computer.posX, computer.posY, paddle.sizeX, paddle.sizeY/2);
+    ctx.fillRect(computer.posX, computer.posY+35, paddle.sizeX, paddle.sizeY/2);
+    ctx.fillRect(ball.x, ball.y, ball.width,ball.height);
 }
 function DrawNet(ctx) {
     for (let i = 0; i < 1000; i += 20   ) {
@@ -224,30 +124,77 @@ function DrawNet(ctx) {
       ctx.fillStyle = "white"
     }
 }
-function BallReset() {
-    soundEFX1 = new Audio('/explosion.wav');
-    soundEFX2 = new Audio('/click.wav');
-    collidedWallBottom = false
-    collidedWallTop = false
-    collided = false;
-    playerPosX = 100;
-    playerPosY = 165;
-    computerPosX = 900;
-    computerPosy = 265;
-    BallWidth = 10;
-    BallHight = 10;
-    side = null;
-    ballLive = true;
-    pacifico_font = new FontFace('CourierCocoW00-Regular', 'url(db.onlinewebfonts.com/t/ca7fab70d3dbd232a157600131e4c9dd.eot)');
-    screenShaking = false
-    BallX = 400;
-    BallY = 200
-    RANDOMENUM = getRndInteger(-5,5);
-    BallY += RANDOMENUM;
+function getRndInteger(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
 }
+function checkSide() {
+    //Side 1 = Right Side
+    //Side 2 = Left Side
+     if (ball.x >= 500) {
+        side = 1;
+     }
+     if (ball.x <= 500) {
+        side = 2;
+     }
+}
+function checkScore() {
+    if (ball.x <= 0) {
+        soundEFX1.currentTime = 0.1;
+        soundEFX1.play();
+        ball.speed *= -1;
+        ball.alive = false;
+        if (bots === true) {
+            ball.speed += 0.2;
 
+        }
+        BallReset();
+        setTimeout(() => {
+            computer.score += 1
+            if (player.score < computer.score) {
+                PlayerAiSpeed++;
+                
+
+                console.log("PlayerSpeed = "+ PlayerAiSpeed)
+                console.log("BallSpeed = "+ ball.speed)
+
+
+            }
+            }, 500)
+    }
+    if (ball.x >= 950) {
+        if (bots === true) {
+            ball.speed += 0.2;
+
+        }        soundEFX1.currentTime = 0.1;
+        soundEFX1.play();
+        ball.speed *= -1;
+        ball.alive = false;
+        BallReset();
+        setTimeout(() => {
+            player.score += 1       
+
+            if (player.score > computer.score) {
+                    AISpeed++;
+                    console.log("AiSpeed = "+ AISpeed)
+                    console.log("BallSpeed = "+ ball.speed)
+
+            } 
+        },500)
+    }
+}
+function checkSplash() {
+    if (splash === true) {
+        splashScreen.style.opacity = 0;
+
+        ball.alive = true;
+        setTimeout(()=>{
+            splashScreen.classList.add('hidden')
+            
+        },610)
+    }
+}
 function checkWall() {
-    if (BallY <= 20){
+    if (ball.y <= 20){
         collidedWallTop = true
         screenShaking = true;
         setTimeout(() => {
@@ -256,7 +203,7 @@ function checkWall() {
 
         }, 100)
     }
-    if (BallY >= c.height){
+    if (ball.y >= c.height){
         collidedWallBottom = true;
         screenShaking = true;
 
@@ -267,12 +214,17 @@ function checkWall() {
     }
 
 }
-let PlayerAiSpeed = 1;
-function playerAI() {
-    if (playerPosY + 35 <= BallY)
-    playerPosY += PlayerAiSpeed;
-    if (playerPosY+35 >= BallY)
-    playerPosY -= PlayerAiSpeed;
+function check_Keyboard() {
+    if (cureentKeys.get("Enter") === true) {
+        splash = true;
+
+    }
+    if (cureentKeys.get('w') === true) {
+        player.posY -= 5;
+    }
+    if (cureentKeys.get("s") === true) {
+        player.posY += 5;
+    }
 }
 function checkIfColoided() {
     if (collidedWallTop === true) {
@@ -293,7 +245,7 @@ function checkIfColoided() {
     if (collided === true) {
         soundEFX2.play();
         console.log("MUSIC PLAY")
-        start_particles(BallX,BallY);
+        start_particles(ball.x,ball.y);
 
         RANDOMENUM = getRndInteger(-5,5);
         collided = false;
@@ -301,46 +253,74 @@ function checkIfColoided() {
     collidedWallTop = false
     collidedWallBottom = false;
     collided = false;
-    BallY += RANDOMENUM;
+    ball.y += RANDOMENUM;
 }
-let AIRunned = false;
+function update_particles() {
+    parts.forEach(part => {
+        part.pos.x += part.vel.x
+        part.pos.y += part.vel.y
+        part.age += 1
+        if(part.age > 50) {
+            part.alive = false
+        }
+    })
+}
+function update_Ball(){
+        ball.x += ball.speed
+    if (ball.x <= 120) {
+        if (ball.y >= player.posY && ball.y <= player.posY + 70)
+            if (runned === false) {
+                console.log("Colided")
+                collided = true
+                ball.speed *= -1
+                runned = true;
+                screenShaking = true;
+                setTimeout(() => {
+                    screenShaking = false;
+
+                }, 200) 
+        }
+
+    }
+    if (ball.x >= 880) {
+        if (ball.y >= computer.posY && ball.y <= computer.posY + 71)
+        if (runned2 === false) {
+            console.log("Colided")
+            collided = true
+            ball.speed *= -1
+            runned2 = true;
+            screenShaking = true;
+
+            setTimeout(() => {
+                screenShaking = false;
+
+            }, 200)
+        }
+    }
+    runned = false;
+    runned2 = false;
+}
 function AI() {
-    if (computerPosy + 35 <= BallY)
-    computerPosy += AISpeed;
+    if (computer.posY + 35 <= ball.y)
+    computer.posY += AISpeed;
 
-    if (computerPosy+35 >= BallY)
-    computerPosy -= AISpeed;
-}
-function draw_score(ctx) {
-    ctx.font = "48px serif";
-    ctx.fillText(scorePlayer, 250, 50);
-    ctx.fillText(scoreComputer, 750, 50);
-
-}
-function setPlayerRunning() {
-    playeraiRunning = !playeraiRunning;
-    bots = !bots;
-
+    if (computer.posY+35 >= ball.y)
+    computer.posY -= AISpeed;
 }
 function update() {
     checkSplash();
     //input
-    keyboard();
+    check_Keyboard();
     //movement / physics
-    if (ballLive === true) {
+    if (ball.alive === true) {
         checkIfColoided();
-        if (playeraiRunning === true) {
-            playerAI();
-        }
         update_particles();
         AI();
         checkWall();
-        move_ball();
+        update_Ball();
         checkScore();
         checkSide();
-
     }
-    var ctx = c.getContext("2d");
     ctx.save()
     if(screenShaking === true) {
       ctx.translate(Math.random()*10,0)
@@ -351,8 +331,9 @@ function update() {
     draw_score(ctx);
     draw_particles();
     ctx.restore()
-
     window.requestAnimationFrame(update);
 }
-sertupkeyboard();
 update();
+function setup() {
+    sertupkeyboard();
+}
