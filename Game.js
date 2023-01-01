@@ -149,6 +149,7 @@ function start_particles(x, y) {
 // }
 function draw_score(ctx) {
   ctx.font = "80px serif";
+  ctx.fillStyle = 'white'
   ctx.fillText(player.score, 250, 75);
   ctx.fillText(computer.score, 750, 75);
 }
@@ -161,26 +162,16 @@ function draw_particles() {
     }
   }
 }
-function draw_player(ctx) {
-  // clear screen
-  ctx.fillStyle = "#f1f2da";
-  ctx.clearRect(0, 0, c.width, c.height);
-  ctx.fillRect(player.posX, player.posY, paddle.w, paddle.h / 2);
-  ctx.fillRect(player.posX, player.posY + 35, paddle.w, paddle.h / 2);
-  ctx.fillRect(computer.posX, computer.posY, paddle.w, paddle.h / 2);
-  ctx.fillRect(
-    computer.posX,
-    computer.posY + 35,
-    paddle.w,
-    paddle.h / 2
-  );
+function draw_paddles_and_ball(ctx) {
+  ctx.fillStyle = 'white'
+  ctx.fillRect(player.posX, player.posY, paddle.w, paddle.h);
+  ctx.fillRect(computer.posX, computer.posY, paddle.w, paddle.h);
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 }
 function draw_net(ctx) {
-  for (let i = 0; i < 1000; i += 20) {
+  for (let i = 0; i < c.height; i += 20) {
     ctx.fillStyle = "#808080";
     ctx.fillRect(500, i, 10, 10);
-    ctx.fillStyle = "white";
   }
 }
 function getRndInteger(min, max) {
@@ -317,6 +308,12 @@ function draw_debug(ctx) {
   }
 }
 
+function clear_screen(ctx) {
+  // clear screen
+  ctx.fillStyle = "#f1f2da";
+  ctx.clearRect(0, 0, c.width, c.height);
+}
+
 function update() {
   checkSplash();
   //input
@@ -341,7 +338,8 @@ function update() {
       ctx.translate(Math.random() * 30, 0);
     }
     // draw
-    draw_player(ctx);
+    clear_screen(ctx)
+    draw_paddles_and_ball(ctx);
     draw_net(ctx);
     draw_score(ctx);
     draw_particles();
