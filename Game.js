@@ -320,3 +320,4 @@ update();
 function setup() {
   sertupkeyboard();
 }
+setup();
