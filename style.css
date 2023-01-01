@@ -2,8 +2,10 @@ body {
   padding-top: 10px;
 
   background-color: #00303b;
+  overflow: hidden;
 }
 canvas {
+  outline: 1px solid red;
   background-color: #00303b;
   padding-left: 0;
   padding-right: 0;

@@ -14,6 +14,7 @@ let player = {
   score: 0,
   posX: 100,
   posY: 165,
+  AiSpeed: 1,
 };
 let paddle = {
   sizeX: 10,
@@ -24,7 +25,6 @@ let computer = {
   posY: 265,
   score: 0,
 };
-let PlayerAiSpeed = 1;
 let AIRunned = false;
 let bots = false;
 let splash = null;
@@ -46,8 +46,6 @@ let runned = false;
 let runned2 = false;
 ctx.font = "50px pacifico_font";
 ctx.fillStyle = "#f0f6f0";
-ctx.fillText(player.score, 200, 50);
-ctx.fillText(computer.score, 550, 50);
 function BallReset() {
   collidedWallBottom = false;
   collidedWallTop = false;
@@ -58,7 +56,6 @@ function BallReset() {
   computer.posY = 265;
   ball.width = 10;
   ball.height = 10;
-  side = null;
   ball.alive = true;
   screenShaking = false;
   ball.x = 400;
@@ -91,10 +88,71 @@ function start_particles(x, y) {
     });
   }
 }
+// let outline = true;
+// let outlineOn = 2;
+// let levelActice = null;
+// let LevelStart = false;
+// function StartLevelSelect() {
+//     if (LevelStart === false) {
+//         LevelStart = true;
+//     }
+// }
+// function updateLevelSelect() {
+//     if (LevelStart = true) {
+//         console.log("LevelSelect")
+//         ctx.fillStyle = `rgba(0,48,59)`;
+//         ctx.fillRect(0,0,c.width,c.height)
+//         if (outline === true) {
+//             //DrawOutline
+//             if (outlineOn === 1) {
+//                 ctx.fillStyle = "red"
+//                 ctx.fillRect(c.width/2-52,c.height/2-202.5, 105, 55)
+//             }
+//             if (outlineOn === 2) {
+//                 console.log("2")
+//                 ctx.fillStyle = "red"
+//                 ctx.fillRect(c.width/2-77,c.height/2-102.5, 180, 55)
+//             }
+//             if (outlineOn === 3) {
+//                 console.log("3")
+//                 ctx.fillStyle = "red"
+//                 ctx.fillRect(c.width/2-52,c.height/2-2, 105, 55)
+//             }
+//         }
+//         //PONG
+//         ctx.fillStyle = "black"
+//         ctx.fillText("PONG", c.width/2-62, c.height/2-250);
+//         //EASY
+//         ctx.font = "48px serif";
+//         ctx.fillStyle = "black"
+//         ctx.font = "48px serif";
+//         ctx.fillStyle = "black"
+//         ctx.fillRect(c.width/2-50,c.height/2-200, 100, 50)
+//         ctx.fillStyle = "white"
+//         console.log("EASY")
+//         ctx.fillText("Easy", c.width/2-45, c.height/2-163);
+//         //MEDIUM
+//         ctx.fillStyle = "black"
+//         ctx.font = "48px serif";
+//         ctx.fillStyle = "black"
+//         ctx.fillRect(c.width/2-75,c.height/2-100, 175, 50)
+//         ctx.fillStyle = "white"
+//         ctx.fillText("Medium", c.width/2-65, c.height/2-63);
+//         //HARD
+//         ctx.fillStyle = "black"
+//         ctx.font = "48px serif";
+//         ctx.fillStyle = "black"
+//         ctx.fillRect(c.width/2-50,c.height/2-0, 100, 50)
+//         ctx.fillStyle = "white"
+//         ctx.fillText("Hard", c.width/2-45, c.height/2 + 40);
+//         // ball.alive = true
+
+//     }
+// }
 function draw_score(ctx) {
-  ctx.font = "48px serif";
-  ctx.fillText(player.score, 250, 50);
-  ctx.fillText(computer.score, 750, 50);
+  ctx.font = "80px serif";
+  ctx.fillText(player.score, 250, 75);
+  ctx.fillText(computer.score, 750, 75);
 }
 function draw_particles() {
   for (let i = 0; i < parts.length; i++) {
@@ -130,16 +188,6 @@ function DrawNet(ctx) {
 function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
-function checkSide() {
-  //Side 1 = Right Side
-  //Side 2 = Left Side
-  if (ball.x >= 500) {
-    side = 1;
-  }
-  if (ball.x <= 500) {
-    side = 2;
-  }
-}
 function checkScore() {
   if (ball.x <= 0) {
     soundEFX1.currentTime = 0.1;
@@ -153,9 +201,9 @@ function checkScore() {
     setTimeout(() => {
       computer.score += 1;
       if (player.score < computer.score) {
-        PlayerAiSpeed++;
+        player.AiSpeed++;
 
-        console.log("PlayerSpeed = " + PlayerAiSpeed);
+        console.log("PlayerSpeed = " + player.AiSpeed);
         console.log("BallSpeed = " + ball.speed);
       }
     }, 500);
@@ -180,12 +228,12 @@ function checkScore() {
 function checkSplash() {
   if (splash === true) {
     splashScreen.style.opacity = 0;
-
-    ball.alive = true;
+    ball.alive = false;
     setTimeout(() => {
       splashScreen.classList.add("hidden");
     }, 610);
   }
+  StartLevelSelect();
 }
 function checkWall() {
   if (ball.y <= 20) {
@@ -195,7 +243,7 @@ function checkWall() {
       screenShaking = false;
     }, 100);
   }
-  if (ball.y >= 650) {
+  if (ball.y >= 600) {
     collidedWallBottom = true;
     screenShaking = true;
 
@@ -204,6 +252,8 @@ function checkWall() {
     }, 100);
   }
 }
+let pressed = false;
+let pressed2 = false;
 function check_Keyboard() {
   if (cureentKeys.get("Enter") === true) {
     splash = true;
@@ -213,6 +263,21 @@ function check_Keyboard() {
   }
   if (cureentKeys.get("s") === true) {
     player.posY += 5;
+  }
+  if (cureentKeys.get("ArrowUp") === true) {
+    console.log("Arrow Up");
+    if (pressed === false) {
+      outlineOn -= 1;
+      pressed = true;
+      pressed2 = false;
+    }
+  }
+  if (cureentKeys.get("ArrowDown") === true) {
+    if (pressed2 === false) {
+      outlineOn += 1;
+      pressed2 = true;
+      pressed = false;
+    }
   }
 }
 function checkIfColoided() {
@@ -287,10 +352,15 @@ function AI() {
 
   if (computer.posY + 35 >= ball.y) computer.posY -= AISpeed;
 }
+function SetUpText() {
+  ctx.fillText(player.score, 200, 50);
+  ctx.fillText(computer.score, 550, 50);
+}
 function update() {
   checkSplash();
   //input
   check_Keyboard();
+  //   updateLevelSelect()
   //movement / physics
   if (ball.alive === true) {
     checkIfColoided();
@@ -299,22 +369,26 @@ function update() {
     checkWall();
     update_Ball();
     checkScore();
-    checkSide();
+
+    ctx.save();
+    if (screenShaking === true) {
+      ctx.translate(Math.random() * 30, 0);
+    }
+    // draw
+    drawPlayer(ctx);
+    DrawNet(ctx);
+    draw_score(ctx);
+    draw_particles();
+
+    ctx.restore();
   }
-  ctx.save();
-  if (screenShaking === true) {
-    ctx.translate(Math.random() * 10, 0);
-  }
-  // draw
-  drawPlayer(ctx);
-  DrawNet(ctx);
-  draw_score(ctx);
-  draw_particles();
-  ctx.restore();
   window.requestAnimationFrame(update);
 }
 update();
 function setup() {
+  if (ball.alive === true) {
+    SetUpText();
+  }
   sertupkeyboard();
 }
 setup();
