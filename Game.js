@@ -2,7 +2,11 @@ const c = document.getElementById("Game")
 const ctx = c.getContext("2d")
 const splashScreen = document.querySelector(".splash")
 
-const shake_enabled = false
+const shake_enabled = true
+const particles_enabled = true
+const DEBUG = {
+  print_ai:false,
+}
 
 let ball = {
   x: 400,
@@ -10,14 +14,13 @@ let ball = {
   r: 5,
   width: 10,
   height: 10,
-  speed: 5,
+  x_speed: 5,
   alive: false,
 };
 let player = {
   score: 0,
   posX: 100,
   posY: 165,
-  AiSpeed: 1,
 };
 let paddle = {
   w: 10,
@@ -29,30 +32,21 @@ let computer = {
   score: 0,
 };
 let splash = null;
-let RANDOMENUM = null;
+let random_y_angle = null;
 let soundEFX1 = new Audio("/explosion.wav");
 let soundEFX2 = new Audio("/click.wav");
 let parts = [];
-RANDOMENUM = getRndInteger(-5, 5);
-ball.y += RANDOMENUM;
-let collidedWallBottom = null;
-let collidedWallTop = null;
+random_y_angle = getRndInteger(-5, 5);
+ball.y += random_y_angle;
 let screenShaking = false;
 let AISpeed = 1;
-let cureentKeys = new Map();
-let collided = false;
-let runned = false;
-let runned2 = false;
-
+let current_keys = new Map();
 
 ctx.font = "50px pacifico_font";
 ctx.fillStyle = "#f0f6f0";
 
 
-function BallReset() {
-  collidedWallBottom = false;
-  collidedWallTop = false;
-  collided = false;
+function reset_ball() {
   player.posX = 100;
   player.posY = 165;
   computer.posX = 900;
@@ -63,18 +57,19 @@ function BallReset() {
   screenShaking = false;
   ball.x = 400;
   ball.y = 200;
-  RANDOMENUM = getRndInteger(-5, 5);
-  ball.y += RANDOMENUM;
+  random_y_angle = getRndInteger(-5, 5);
+  ball.y += random_y_angle;
 }
-function sertupkeyboard() {
+function setup_keyboard() {
   window.addEventListener("keydown", function (event) {
-    cureentKeys.set(event.key, true);
+    current_keys.set(event.key, true);
   });
   window.addEventListener("keyup", function (event) {
-    cureentKeys.set(event.key, false);
+    current_keys.set(event.key, false);
   });
 }
 function start_particles(x, y) {
+  if(!particles_enabled) return
   parts = [];
   for (let i = 0; i < 50; i++) {
     parts.push({
@@ -166,7 +161,7 @@ function draw_particles() {
     }
   }
 }
-function drawPlayer(ctx) {
+function draw_player(ctx) {
   // clear screen
   ctx.fillStyle = "#f1f2da";
   ctx.clearRect(0, 0, c.width, c.height);
@@ -181,7 +176,7 @@ function drawPlayer(ctx) {
   );
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 }
-function DrawNet(ctx) {
+function draw_net(ctx) {
   for (let i = 0; i < 1000; i += 20) {
     ctx.fillStyle = "#808080";
     ctx.fillRect(500, i, 10, 10);
@@ -195,34 +190,21 @@ function checkScore() {
   if (ball.x <= 0) {
     soundEFX1.currentTime = 0.1;
     soundEFX1.play();
-    ball.speed *= -1;
+    ball.x_speed *= -1;
     ball.alive = false;
-    BallReset();
-    setTimeout(() => {
-      computer.score += 1;
-      if (player.score < computer.score) {
-        player.AiSpeed++;
-
-        console.log("PlayerSpeed = " + player.AiSpeed);
-        console.log("BallSpeed = " + ball.speed);
-      }
-    }, 500);
+    reset_ball();
+    computer.score += 1;
   }
   if (ball.x >= 950) {
     soundEFX1.currentTime = 0.1;
     soundEFX1.play();
-    ball.speed *= -1;
+    ball.x_speed *= -1;
     ball.alive = false;
-    BallReset();
-    setTimeout(() => {
-      player.score += 1;
-
-      if (player.score > computer.score) {
-        AISpeed++;
-        console.log("AiSpeed = " + AISpeed);
-        console.log("BallSpeed = " + ball.speed);
-      }
-    }, 500);
+    reset_ball();
+    player.score += 1;
+    if (player.score > computer.score) {
+      AISpeed++;
+    }
   }
 }
 function checkSplash() {
@@ -236,79 +218,39 @@ function checkSplash() {
   // StartLevelSelect();
   ball.alive = true
 }
-function checkWall() {
+function check_wall_collisions() {
+  // check top wall
   if (ball.y <= 20) {
-    collidedWallTop = true;
-    if(shake_enabled) {
-      screenShaking = true;
-      setTimeout(() => {
-        screenShaking = false;
-      }, 100);
-    }
+    ball.y = 20
+    random_y_angle = getRndInteger(1, 5);
+    ball.y += random_y_angle;
+    soundEFX2.play();
+    start_screen_shake()
   }
+  // check bottom wall
   if (ball.y >= 600) {
-    collidedWallBottom = true;
-    if(screenShaking) {
-      screenShaking = true;
-      setTimeout(() => {
-        screenShaking = false;
-      }, 100);
-    }
+    ball.y = 600
+    random_y_angle = getRndInteger(-5, -1);
+    ball.y += random_y_angle;
+    soundEFX2.play();
+    start_screen_shake()
   }
 }
-let pressed = false;
-let pressed2 = false;
-function check_Keyboard() {
-  if (cureentKeys.get("Enter") === true) {
+function game_check_keyboard() {
+  if (current_keys.get("Enter") === true) {
     splash = true;
   }
-  if (cureentKeys.get("w") === true) {
+  if (current_keys.get("w") === true || current_keys.get('ArrowUp')) {
     player.posY -= 5;
   }
-  if (cureentKeys.get("s") === true) {
+  if (current_keys.get("s") === true || current_keys.get('ArrowDown')) {
     player.posY += 5;
   }
-  if (cureentKeys.get("ArrowUp") === true) {
-    console.log("Arrow Up");
-    if (pressed === false) {
-      // outlineOn -= 1;
-      pressed = true;
-      pressed2 = false;
-    }
-  }
-  if (cureentKeys.get("ArrowDown") === true) {
-    if (pressed2 === false) {
-      // outlineOn += 1;
-      pressed2 = true;
-      pressed = false;
-    }
-  }
 }
-function checkIfColoided() {
-  if (collidedWallTop === true) {
-    soundEFX2.play();
-    RANDOMENUM = getRndInteger(1, 5);
-    console.log("MUSIC PLAY");
-  }
-  if (collidedWallBottom === true) {
-    soundEFX2.play();
-    console.log("MUSIC PLAY");
+function menu_check_keyboard() {
 
-    RANDOMENUM = RANDOMENUM = getRndInteger(-5, 0);
-  }
-  if (collided === true) {
-    soundEFX2.play();
-    console.log("MUSIC PLAY");
-    start_particles(ball.x, ball.y);
-
-    RANDOMENUM = getRndInteger(-5, 5);
-    collided = false;
-  }
-  collidedWallTop = false;
-  collidedWallBottom = false;
-  collided = false;
-  ball.y += RANDOMENUM;
 }
+
 function update_particles() {
   parts.forEach((part) => {
     part.pos.x += part.vel.x;
@@ -319,74 +261,91 @@ function update_particles() {
     }
   });
 }
-function update_Ball() {
-  ball.x += ball.speed;
-  if (ball.x === 115) {
-    if (ball.y >= player.posY && ball.y <= player.posY + 70)
-      if (runned === false) {
-        console.log("Colided");
-        collided = true;
-        ball.speed *= -1;
-        runned = true;
-        if(shake_enabled) {
-          screenShaking = true;
-          setTimeout(() => {
-            screenShaking = false;
-          }, 200);
-        }
-      }
-  }
-  if (ball.x === 880) {
-    if (ball.y >= computer.posY && ball.y <= computer.posY + 71)
-      if (runned2 === false) {
-        console.log("Colided");
-        collided = true;
-        ball.speed *= -1;
-        runned2 = true;
-        if(shake_enabled) {
-          screenShaking = true;
-          setTimeout(() => {
-            screenShaking = false;
-          }, 200);
-        }
-      }
-  }
-  runned = false;
-  runned2 = false;
+function start_screen_shake() {
+    if (shake_enabled) {
+      screenShaking = true;
+      setTimeout(() => {
+        screenShaking = false;
+      }, 200);
+    }
 }
-function AI() {
-  if (computer.posY + 35 <= ball.y) computer.posY += AISpeed;
+function check_paddle_collisons() {
+  // move the ball
+  let new_ball_x = ball.x + ball.x_speed;
+  //if ball hit player paddle
+  //reverse direction
+  if(new_ball_x <= 115 && ball.y >= player.posY && ball.y <= player.posY + 70) {
+    ball.x = 115
+    ball.x_speed *= -1;
+    ball.x += ball.x_speed;
+    soundEFX2.play();
+    random_y_angle = getRndInteger(-5, 5);
+    ball.y += random_y_angle;
+    start_particles(ball.x,ball.y)
+    start_screen_shake()
+    return
+  }
 
+  //if ball hit computer paddle
+  //reverse direction
+  if(new_ball_x >= 880 && ball.y >= computer.posY && ball.y <= computer.posY + 71) {
+    ball.x = 880
+    ball.x_speed *= -1;
+    ball.x += ball.x_speed;
+    soundEFX2.play();
+    random_y_angle = getRndInteger(-5, 5);
+    ball.y += random_y_angle;
+    start_particles(ball.x,ball.y)
+    start_screen_shake()
+    return
+  }
+
+  ball.x = new_ball_x
+  ball.y = ball.y + random_y_angle
+}
+function update_computer_paddle() {
+  if (computer.posY + 35 <= ball.y) computer.posY += AISpeed;
   if (computer.posY + 35 >= ball.y) computer.posY -= AISpeed;
 }
-function SetUpText() {
-  ctx.fillText(player.score, 200, 50);
-  ctx.fillText(computer.score, 550, 50);
+
+function draw_debug(ctx) {
+  if(DEBUG.print_ai) {
+    ctx.fillStyle = 'red'
+    ctx.font = '24px sans-serif'
+    ctx.fillText("ai speed = " + AISpeed, 100,100)
+    ctx.fillText("ball speed = " + ball.x_speed, 100,130)
+  }
 }
+
 function update() {
   checkSplash();
   //input
-  check_Keyboard();
   //   updateLevelSelect()
   //movement / physics
   if (ball.alive === true) {
-    checkIfColoided();
-    update_particles();
-    AI();
-    checkWall();
-    update_Ball();
+    //check for user input
+    game_check_keyboard();
+    // move the computer
+    update_computer_paddle();
+    //check for wall collisions
+    check_wall_collisions();
+    //check for paddle collisions
+    check_paddle_collisons();
+
     checkScore();
+
+    update_particles();
 
     ctx.save();
     if (screenShaking === true) {
       ctx.translate(Math.random() * 30, 0);
     }
     // draw
-    drawPlayer(ctx);
-    DrawNet(ctx);
+    draw_player(ctx);
+    draw_net(ctx);
     draw_score(ctx);
     draw_particles();
-
+    draw_debug(ctx)
     ctx.restore();
   }
   window.requestAnimationFrame(update);
@@ -394,9 +353,9 @@ function update() {
 
 function start() {
   if (ball.alive === true) {
-    SetUpText();
+    draw_score(ctx);
   }
-  sertupkeyboard();
+  setup_keyboard();
   update()
 }
 start();
