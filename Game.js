@@ -12,7 +12,7 @@ let ball = {
 };
 let player = {
   score: 0,
-  posX: 20,
+  posX: 100,
   posY: 165,
 };
 let paddle = {
@@ -20,7 +20,7 @@ let paddle = {
   sizeY: 70,
 };
 let computer = {
-  posX: 980,
+  posX: 900,
   posY: 265,
   score: 0,
 };
@@ -66,7 +66,7 @@ function BallReset() {
   RANDOMENUM = getRndInteger(-5, 5);
   ball.y += RANDOMENUM;
 }
-function setupkeyboard() {
+function sertupkeyboard() {
   window.addEventListener("keydown", function (event) {
     cureentKeys.set(event.key, true);
   });
@@ -318,6 +318,6 @@ function update() {
 }
 update();
 function setup() {
-  setupkeyboard();
+  sertupkeyboard();
 }
 setup();
