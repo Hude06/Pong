@@ -166,6 +166,16 @@ function draw_paddles_and_ball(ctx) {
   ctx.fillStyle = 'white'
   ctx.fillRect(player.posX, player.posY, paddle.w, paddle.h);
   ctx.fillRect(computer.posX, computer.posY, paddle.w, paddle.h);
+
+  for(let t=0; t<5; t++) {
+    let per = (t/5)
+    let r = Math.floor(per*255)
+    let g = Math.floor(per*100)+100
+    let b  = Math.floor(per*50)
+    ctx.fillStyle = `rgba(${r},${g},${b},${100-per*100}%)`
+    ctx.fillRect(ball.x + ball.x_speed * -t, ball.y + random_y_angle * -t, ball.width+t, ball.height+t);
+  }
+  ctx.fillStyle = 'rgb(255,100,50,1.0)'
   ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
 }
 function draw_net(ctx) {
