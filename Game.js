@@ -78,8 +78,8 @@ function start_particles(x, y) {
         y: y,
       },
       vel: {
-        x: Math.random(),
-        y: Math.random(),
+        x: (Math.random()-0.5)*5,
+        y: (Math.random()-0.5)*5,
       },
       alive: true,
       age: 0,
@@ -157,8 +157,12 @@ function draw_particles() {
   for (let i = 0; i < parts.length; i++) {
     let part = parts[i];
     if (part.alive) {
-      ctx.fillStyle = `rgba(255,119,119,${50 - part.age}%)`;
+      let a = Math.floor(100 -part.age*2)
+      ctx.save()
+      ctx.beginPath()
+      ctx.fillStyle = `rgba(255,119,119,${a}%)`;
       ctx.fillRect(part.pos.x, part.pos.y, 10, 10);
+      ctx.restore()
     }
   }
 }
