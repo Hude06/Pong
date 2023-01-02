@@ -13,6 +13,8 @@ const PaddelSkinAI = new Image();
 PaddelSkin.src = "/Sprite-0003.png"
 PaddelSkinAI.src = "/Sprite-0005.png"
 
+let paused = false
+
 const DEBUG = {
   print_ai: false,
 };
@@ -91,26 +93,23 @@ ctx.fillStyle = "#f0f6f0";
 let FlipedControlles = false;
 let settingsWindowOpen = false
 let settingRuned = false;
-function settingsWindow() {
-    if (current_keys.get("Escape") === true) {
-        if (settingRuned === false) {
-            settingsWindowOpen = !settingsWindowOpen
-            settingRuned = true
-        }
-    }
-    if (current_keys.get("Escape") === false) {
-        settingRuned = false
-    }
+function draw_settings_window() {
     if (settingsWindowOpen === true) {
         ctx.fillStyle = "red"
         ctx.fillRect(0,0,c.width,c.height)
     }
-
 }
 function checkSettingsWindow() {
-    if (settingsWindowOpen === true) {
-
+  if (current_keys.get("x") === true) {
+    if (settingRuned === false) {
+      paused = !paused
+      settingsWindowOpen = !settingsWindowOpen
+      settingRuned = true
     }
+  }
+  if (current_keys.get("x") === false) {
+    settingRuned = false
+  }
 }
 function reset_ball() {
   player.posX = 100;
@@ -465,7 +464,7 @@ function game_check_keyboard() {
     if (FlipedControlles === true) {
         console.log("TRUUUUE")
         player.posY -= 5
-    }  
+    }
   }
 }
 function update_particles() {
@@ -553,29 +552,34 @@ function update() {
   updateLevelSelect();
   checkSettingsWindow()
 
-  if (ball.alive === true) {
-    // move the computer
-    update_computer_paddle();
-    //check for wall collisions
-    check_wall_collisions();
-    //check for paddle collisions
-    check_paddle_collisons();
-    checkScore();
-    update_particles();
-    Flip_Controlls()
-    ctx.save();
-    if (screenShaking === true) {
-      ctx.translate(Math.random() * 30, 0);
-    }
-    // draw
+
+  if(paused) {
     clear_screen(ctx);
-    draw_paddles_and_ball(ctx);
-    draw_net(ctx);
-    draw_score(ctx);
-    draw_particles();
-    draw_debug(ctx);
-    ctx.restore();
-    settingsWindow()
+    draw_settings_window()
+  } else {
+    if (ball.alive === true) {
+      // move the computer
+      update_computer_paddle();
+      //check for wall collisions
+      check_wall_collisions();
+      //check for paddle collisions
+      check_paddle_collisons();
+      checkScore();
+      update_particles();
+      Flip_Controlls()
+      ctx.save();
+      if (screenShaking === true) {
+        ctx.translate(Math.random() * 30, 0);
+      }
+      // draw
+      clear_screen(ctx);
+      draw_paddles_and_ball(ctx);
+      draw_net(ctx);
+      draw_score(ctx);
+      draw_particles();
+      draw_debug(ctx);
+      ctx.restore();
+    }
   }
 
   window.requestAnimationFrame(update);
