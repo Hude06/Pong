@@ -8,6 +8,11 @@ let RectLeftOfset =  250;
 let RectHeight = 100;
 const shake_enabled = true;
 const particles_enabled = true;
+const PaddelSkin = new Image();
+const PaddelSkinAI = new Image();
+PaddelSkin.src = "/Sprite-0003.png"
+PaddelSkinAI.src = "/Sprite-0005.png"
+
 const DEBUG = {
   print_ai: false,
 };
@@ -21,7 +26,7 @@ let ball = {
   r: 5,
   width: 10,
   height: 10,
-  x_speed: 4,
+  x_speed: 5,
   alive: false,
 };
 let player = {
@@ -30,7 +35,7 @@ let player = {
   posY: 165,
 };
 let paddle = {
-  w: 10,
+  w: 14,
   h: 70,
 };
 let computer = {
@@ -68,6 +73,8 @@ let splash = null;
 let random_y_angle = null;
 let soundEFX1 = new Audio("/explosion.wav");
 let soundEFX2 = new Audio("/click.wav");
+let soundEFX3 = new Audio("/ControllsFliped.wav");
+
 let parts = [];
 random_y_angle = getRndInteger(-5, 5);
 ball.y += random_y_angle;
@@ -81,6 +88,30 @@ let LevelStart = false;
 let RectWidthLine = 5;
 ctx.font = "50px pacifico_font";
 ctx.fillStyle = "#f0f6f0";
+let FlipedControlles = false;
+let settingsWindowOpen = false
+let settingRuned = false;
+function settingsWindow() {
+    if (current_keys.get("Escape") === true) {
+        if (settingRuned === false) {
+            settingsWindowOpen = !settingsWindowOpen
+            settingRuned = true
+        }
+    }
+    if (current_keys.get("Escape") === false) {
+        settingRuned = false
+    }
+    if (settingsWindowOpen === true) {
+        ctx.fillStyle = "red"
+        ctx.fillRect(0,0,c.width,c.height)
+    }
+
+}
+function checkSettingsWindow() {
+    if (settingsWindowOpen === true) {
+
+    }
+}
 function reset_ball() {
   player.posX = 100;
   player.posY = 165;
@@ -88,7 +119,9 @@ function reset_ball() {
   computer.posY = 265;
   ball.width = 10;
   ball.height = 10;
-  ball.alive = true;
+//   if (settingsWindowOpen === false) {
+//     ball.alive = true;
+//   }
   screenShaking = false;
   ball.x = 400;
   ball.y = 200;
@@ -290,10 +323,21 @@ function draw_particles() {
     }
   }
 }
+let SoundedPlayed = false;
+function Flip_Controlls() {
+    if (FlipedControlles === true) {
+        if (SoundedPlayed === false) {
+            soundEFX3.play();
+            SoundedPlayed = true
+        }
+    }
+
+}
 function draw_paddles_and_ball(ctx) {
   ctx.fillStyle = "#ffeecc";
-  ctx.fillRect(player.posX, player.posY, paddle.w, paddle.h);
-  ctx.fillRect(computer.posX, computer.posY, paddle.w, paddle.h);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(PaddelSkin, player.posX, player.posY,14*2,70*2)
+  ctx.drawImage(PaddelSkinAI, computer.posX, computer.posY,14*2,70*2)
 
   for (let t = 0; t < 5; t++) {
     let per = t / 5;
@@ -401,11 +445,27 @@ function game_check_keyboard() {
   if (current_keys.get("Enter") === true) {
     splash = true;
   }
-  if (current_keys.get("w") === true || current_keys.get("ArrowUp")) {
-    player.posY -= 5;
+  if (current_keys.get("w") || current_keys.get("ArrowUp") ) {
+    if (FlipedControlles === false) {
+        player.posY -= 5
+    }
   }
-  if (current_keys.get("s") === true || current_keys.get("ArrowDown")) {
-    player.posY += 5;
+  if (current_keys.get("s") || current_keys.get("ArrowDown")) {
+    if (FlipedControlles === false) [
+        player.posY += 5
+    ]
+  }
+  if (current_keys.get("w") || current_keys.get("ArrowUp")){
+    if (FlipedControlles === true) {
+        console.log("TRUUUUE")
+        player.posY += 5
+    }
+  }
+  if (current_keys.get("s") || current_keys.get("ArrowDown")) {
+    if (FlipedControlles === true) {
+        console.log("TRUUUUE")
+        player.posY -= 5
+    }  
   }
 }
 function update_particles() {
@@ -434,7 +494,7 @@ function check_paddle_collisons() {
   if (
     new_ball_x <= 115 &&
     ball.y >= player.posY &&
-    ball.y <= player.posY + 70
+    ball.y <= player.posY + paddle.h * 2
   ) {
     ball.x = 115;
     ball.x_speed *= -1;
@@ -452,7 +512,7 @@ function check_paddle_collisons() {
   if (
     new_ball_x >= 880 &&
     ball.y >= computer.posY &&
-    ball.y <= computer.posY + 71
+    ball.y <= computer.posY + paddle.h*2
   ) {
     ball.x = 880;
     ball.x_speed *= -1;
@@ -489,7 +549,9 @@ function update() {
   checkSplash();
   //check for user input
   game_check_keyboard();
+
   updateLevelSelect();
+  checkSettingsWindow()
 
   if (ball.alive === true) {
     // move the computer
@@ -498,11 +560,9 @@ function update() {
     check_wall_collisions();
     //check for paddle collisions
     check_paddle_collisons();
-
     checkScore();
-
     update_particles();
-
+    Flip_Controlls()
     ctx.save();
     if (screenShaking === true) {
       ctx.translate(Math.random() * 30, 0);
@@ -515,7 +575,9 @@ function update() {
     draw_particles();
     draw_debug(ctx);
     ctx.restore();
+    settingsWindow()
   }
+
   window.requestAnimationFrame(update);
 }
 
