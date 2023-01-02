@@ -1,12 +1,11 @@
 body {
   padding-top: 10px;
 
-  background-color: #00303b;
+  background-color:  black ;
   overflow: hidden;
 }
 canvas {
-  outline: 1px solid red;
-  background-color: #00303b;
+  background-color: black;
   padding-left: 0;
   padding-right: 0;
   margin-left: auto;
