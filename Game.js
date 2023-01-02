@@ -1,3 +1,4 @@
+import {start_particles, draw_particles, update_particles} from "./particles.js"
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
 const splashScreen = document.querySelector(".splash");
@@ -7,7 +8,6 @@ let OutlineOfset = 225;
 let RectLeftOfset =  250;
 let RectHeight = 100;
 const shake_enabled = true;
-const particles_enabled = true;
 const PaddelSkin = new Image();
 const PaddelSkinAI = new Image();
 PaddelSkin.src = "/Sprite-0003.png"
@@ -77,7 +77,6 @@ let soundEFX1 = new Audio("/explosion.wav");
 let soundEFX2 = new Audio("/click.wav");
 let soundEFX3 = new Audio("/ControllsFliped.wav");
 
-let parts = [];
 random_y_angle = getRndInteger(-5, 5);
 ball.y += random_y_angle;
 let screenShaking = false;
@@ -134,24 +133,6 @@ function setup_keyboard() {
   window.addEventListener("keyup", function (event) {
     current_keys.set(event.key, false);
   });
-}
-function start_particles(x, y) {
-  if (!particles_enabled) return;
-  parts = [];
-  for (let i = 0; i < 50; i++) {
-    parts.push({
-      pos: {
-        x: x,
-        y: y,
-      },
-      vel: {
-        x: (Math.random() - 0.5) * 5,
-        y: (Math.random() - 0.5) * 5,
-      },
-      alive: true,
-      age: 0,
-    });
-  }
 }
 function StartLevelSelect() {
   if (LevelStart === false) {
@@ -309,19 +290,6 @@ function draw_score(ctx) {
   ctx.fillText(player.score, 250, 75);
   ctx.fillText(computer.score, 750, 75);
 }
-function draw_particles() {
-  for (let i = 0; i < parts.length; i++) {
-    let part = parts[i];
-    if (part.alive) {
-      let a = Math.floor(100 - part.age * 2);
-      ctx.save();
-      ctx.beginPath();
-      ctx.fillStyle = `rgba(255,119,119,${a}%)`;
-      ctx.fillRect(part.pos.x, part.pos.y, 10, 10);
-      ctx.restore();
-    }
-  }
-}
 let SoundedPlayed = false;
 function Flip_Controlls() {
     if (FlipedControlles === true) {
@@ -467,16 +435,6 @@ function game_check_keyboard() {
     }
   }
 }
-function update_particles() {
-  parts.forEach((part) => {
-    part.pos.x += part.vel.x;
-    part.pos.y += part.vel.y;
-    part.age += 1;
-    if (part.age > 50) {
-      part.alive = false;
-    }
-  });
-}
 function start_screen_shake() {
   if (shake_enabled) {
     screenShaking = true;
@@ -576,7 +534,7 @@ function update() {
       draw_paddles_and_ball(ctx);
       draw_net(ctx);
       draw_score(ctx);
-      draw_particles();
+      draw_particles(ctx);
       draw_debug(ctx);
       ctx.restore();
     }
