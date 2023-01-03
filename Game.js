@@ -11,13 +11,15 @@ const PlayerPaddleSkin = new Image();
 const PaddelSkinAI = new Image();
 const TopHatSkin = new Image();
 const ChristmasHatSkin = new Image();
+const PlainSkin = new Image();
+PlainSkin.src = "/PlainSkin.png"
 TopHatSkin.src = "/TopHatSkin.png";
 ChristmasHatSkin.src = "/ChristMasSkin.png";
 let TopHat = "/TopHatSkin.png";
 let ChristmasHat = "/ChristMasSkin.png";
 PaddelSkinAI.src = "/PlainSkin.png";
-let PlainSkin = "/PlainSkin.png"
-PlayerPaddleSkin.src = PlainSkin;
+let Plain = "/PlainSkin.png"
+PlayerPaddleSkin.src = Plain;
 
 let paused = false;
 const DEBUG = {
@@ -302,13 +304,18 @@ function draw_settings_window() {
     //   ctx.strokeStyle = "black"
     //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
     // }
-    ctx.drawImage(TopHatSkin, 190, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(ChristmasHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(ChristmasHatSkin, 350+140, 80, 14 * 1.2, 70 * 1.2);
+
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
-        PlayerPaddleSkin.src = TopHat;
+        PlayerPaddleSkin.src = Plain;
       }
       if (skinOn === 2) {
+        PlayerPaddleSkin.src = TopHat;
+      }
+      if (skinOn === 3) {
         PlayerPaddleSkin.src = ChristmasHat;
       }
     }
