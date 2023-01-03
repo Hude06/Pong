@@ -2,34 +2,19 @@ import {start_particles, draw_particles, update_particles} from "./particles.js"
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
 const splashScreen = document.querySelector(".splash");
-let RectOfset = 40;
-let TextLeftOfset = 250;
-let OutlineOfset = 225;
-let RectLeftOfset =  250;
-let RectHeight = 100;
 const shake_enabled = true;
-const PaddelSkin = new Image();
+const PlayerPaddleSkin = new Image();
 const PaddelSkinAI = new Image();
-PaddelSkin.src = "/Sprite-0003.png"
-PaddelSkinAI.src = "/Sprite-0005.png"
+const TopHatSkin = new Image();
+TopHatSkin.src = "/TopHarSkin.png"
+let TopHat = "/TopHatSkin.png"
+let ChristmasHat = "/ChristMasSkin.png"
+PaddelSkinAI.src = "/PlainSkin.png"
+PlayerPaddleSkin.src = TopHat
 
 let paused = false
-
 const DEBUG = {
   print_ai: false,
-};
-let colors = {
-  blue: "#0a2e44",
-  yellow: "#fcffcc",
-};
-let ball = {
-  x: 400,
-  y: 200,
-  r: 5,
-  width: 10,
-  height: 10,
-  x_speed: 5,
-  alive: false,
 };
 let player = {
   score: 0,
@@ -45,30 +30,16 @@ let computer = {
   posY: 265,
   score: 0,
 };
-let levelLeftOfset = 100;
-let level1 = {
-  x: 10,
-  y: 98,
-  w: 50,
-  h: 55,
-};
-let level2 = {
-  x: 110,
-  y: 98,
-  w: 50,
-  h: 50,
-
+let ball = {
+  x: 400,
+  y: 200,
+  r: 5,
+  width: 10,
+  height: 10,
+  x_speed: 5,
+  alive: false,
 };
 
-let level3 = {
-  x: 210,
-  y: 98,
-  w: 50,
-  h: 50,
-
-};
-let splashScreenOn = false;
-let BALLLIVE = false;
 let arrowUpPressed = false;
 let arrowDownPressed = false;
 let splash = null;
@@ -82,21 +53,200 @@ ball.y += random_y_angle;
 let screenShaking = false;
 let AISpeed = 2;
 let current_keys = new Map();
-let level = true;
-let levelOn = 1;
-let levelActice = null;
-let LevelStart = false;
-let RectWidthLine = 5;
+
 ctx.font = "50px pacifico_font";
 ctx.fillStyle = "#f0f6f0";
 let FlipedControlles = false;
 let settingsWindowOpen = false
 let settingRuned = false;
+
+let splashScreenOn = false;
+let BALLLIVE = false;
+let levelLeftOfset = 100;
+let level1 = {
+x: 10,
+y: 98,
+w: 50,
+h: 55,
+};
+let level2 = {
+x: 110,
+y: 98,
+w: 50,
+h: 50,
+
+};
+
+let level3 = {
+x: 210,
+y: 98,
+w: 50,
+h: 50,
+
+};
+let RectWidthLine = 5;
+let RectOfset = 40;
+let TextLeftOfset = 250;
+let OutlineOfset = 225;
+let RectLeftOfset =  250;
+let RectHeight = 100;
+let levelOn = 1;
+let LevelStart = false;
+function StartLevelSelect(ctx,c) {
+if (LevelStart === false) {
+  LevelStart = true;
+}
+}
+function updateLevelSelect(ctx,c) {
+if (ball.alive === false) {
+  if ((LevelStart === true)) {
+    console.log("LevelSelect");
+    ctx.fillStyle = "gray";
+    ctx.fillRect(0, 0, c.width, c.height);
+    //DrawOutline
+    if (levelOn === 1) {
+      ctx.lineWidth = RectWidthLine;
+      ctx.strokeStyle = "red";
+      ctx.strokeRect(level1.x + OutlineOfset, level1.y, level1.w, level1.h);
+    }
+    if (levelOn === 2) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("2");
+      ctx.strokeRect(level2.x + OutlineOfset, level2.y, level1.w, level1.h);
+    }
+    if (levelOn === 3) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("3");
+      ctx.strokeRect(level3.x + OutlineOfset, level3.y, level1.w, level1.h);
+    }
+    if (levelOn === 4) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("4");
+      ctx.strokeRect(310 + OutlineOfset, 98, 50, 55);
+    }
+
+    if (levelOn === 5) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("5");
+      ctx.strokeRect(410 + OutlineOfset, 98, 50, 55);
+    }
+    if (levelOn === 6) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("6");
+      ctx.strokeRect(10 + OutlineOfset, 198, 50, 55);
+    }
+    if (levelOn === 7) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("7");
+      ctx.strokeRect(110 + OutlineOfset, 198, 50, 55);
+    }
+    if (levelOn === 8) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("8");
+      ctx.strokeRect(210 + OutlineOfset, 198, 50, 55);
+    }
+    if (levelOn === 9) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("9");
+      ctx.strokeRect(310 + OutlineOfset, 198, 50, 55);
+    }
+    if (levelOn === 10) {
+      ctx.lineWidth = RectWidthLine;
+      console.log("10");
+      ctx.strokeRect(410 + OutlineOfset, 198, 50, 55);
+    }
+
+    //Draw Rects
+    ctx.font = "48px serif";
+    ctx.fillStyle = "blue";
+    //Number 1 Rect
+    ctx.fillRect(-15 + RectLeftOfset, RectHeight, 50, 50);
+    //Number 2 Rect
+    for (let i = 0; i < 400; i += 100) {
+      ctx.fillRect(75 + RectLeftOfset + i + 10, RectHeight, 50, 50);
+    }
+    ctx.fillRect(-15 + RectLeftOfset, RectHeight + 100, 50, 50);
+    for (let i = 0; i < 400; i += 100) {
+      ctx.fillRect(75 + RectLeftOfset + i + 10, RectHeight + 100, 50, 50);
+    }
+    ctx.fillStyle = "white";
+    ctx.fillText("1", 0 + TextLeftOfset, RectHeight + RectOfset);
+    ctx.fillText("2", 100 + TextLeftOfset, RectHeight + RectOfset);
+    ctx.fillText("3", 200 + TextLeftOfset, RectHeight + RectOfset);
+    ctx.fillText("4", 300 + TextLeftOfset, RectHeight + RectOfset);
+    ctx.fillText("5", 400 + TextLeftOfset, RectHeight + RectOfset);
+    ctx.fillText("6", 0 + TextLeftOfset, 240);
+    ctx.fillText("7", 100 + TextLeftOfset, 240);
+    ctx.fillText("8", 200 + TextLeftOfset, 240);
+    ctx.fillText("9", 300 + TextLeftOfset, 240);
+    ctx.fillText("10", 385 + TextLeftOfset, 240);
+
+    if (splashScreenOn === true) {
+      if (current_keys.get("Enter") === true) {
+        if (levelOn === 1) {
+          BALLLIVE = true;
+          AISpeed = 2;
+        }
+        if (levelOn === 2) {
+          BALLLIVE = true;
+          AISpeed = 4;
+        }
+        if (levelOn === 3) {
+          BALLLIVE = true;
+          AISpeed = 6;
+        }
+        if (levelOn === 4) {
+          BALLLIVE = true;
+          AISpeed = 8;
+        }
+        if (levelOn === 5) {
+          BALLLIVE = true;
+          AISpeed = 10;
+        }
+        if (levelOn === 6) {
+          BALLLIVE = true;
+          AISpeed = 12;
+        }
+        if (levelOn === 7) {
+          BALLLIVE = true;
+          AISpeed = 14;
+        }
+        if (levelOn === 8) {
+          BALLLIVE = true;
+          AISpeed = 16;
+        }
+        if (levelOn === 9) {
+          BALLLIVE = true;
+          AISpeed = 18;
+        }
+        if (levelOn === 10) {
+          BALLLIVE = true;
+          AISpeed = 20;
+        }
+      }
+      if (BALLLIVE === true) {
+        ball.alive = true;
+      }
+    }
+  }
+}
+}
+
 function draw_settings_window() {
     if (settingsWindowOpen === true) {
         ctx.fillStyle = "red"
         ctx.fillRect(0,0,c.width,c.height)
-    }
+        ctx.strokeStyle = "black"
+        let ofset = 10;
+        for (let i = 0; i < 5; i += 1) {
+          ofset = ofset + 150;
+          ctx.strokeRect(-10 + ofset,75,100,100)
+        }
+        ctx.imageSmoothingEnabled = false
+        ctx.drawImage(PlayerPaddleSkin, 190, 80,14*1.2,70*1.2)
+        ctx.drawImage(PlayerPaddleSkin, 190, 80,14*1.2,70*1.2)
+
+      }
 }
 function checkSettingsWindow() {
   if (current_keys.get("x") === true) {
@@ -134,159 +284,10 @@ function setup_keyboard() {
     current_keys.set(event.key, false);
   });
 }
-function StartLevelSelect() {
-  if (LevelStart === false) {
-    LevelStart = true;
-  }
-}
-function updateLevelSelect() {
-  if (ball.alive === false) {
-    if ((LevelStart = true)) {
-      console.log("LevelSelect");
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, c.width, c.height);
-      //DrawOutline
-      if (levelOn === 1) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(level1.x + OutlineOfset, level1.y, level1.w, level1.h);
-      }
-      if (levelOn === 2) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("2");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(level2.x + OutlineOfset, level2.y, level1.w, level1.h);
-      }
-      if (levelOn === 3) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("3");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(level3.x + OutlineOfset, level3.y, level1.w, level1.h);
-      }
-      if (levelOn === 4) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("4");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(310 + OutlineOfset, 98, 50, 55);
-      }
 
-      if (levelOn === 5) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("5");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(410 + OutlineOfset, 98, 50, 55);
-      }
-      if (levelOn === 6) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("6");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(10 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 7) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("7");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(110 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 8) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("8");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(210 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 9) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("9");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(310 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 10) {
-        ctx.lineWidth = RectWidthLine;
-        console.log("10");
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(410 + OutlineOfset, 198, 50, 55);
-      }
-
-      //Draw Rects
-      ctx.font = "48px serif";
-      ctx.fillStyle = "blue";
-      //Number 1 Rect
-      ctx.fillRect(-15 + RectLeftOfset, RectHeight, 50, 50);
-      //Number 2 Rect
-      for(let i = 0; i < 400; i += 100) {
-        ctx.fillRect((75 + RectLeftOfset) + i + 10, RectHeight, 50, 50);
-      }
-      ctx.fillRect(-15 + RectLeftOfset, RectHeight+100, 50, 50);
-      for (let i = 0; i < 400; i += 100) {
-        ctx.fillRect((75 + RectLeftOfset) + i +10, RectHeight+100, 50, 50);
-      }
-      ctx.fillStyle = "white";
-      ctx.fillText("1", 0 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("2", 100 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("3", 200 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("4", 300 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("5", 400 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("6", 0 + TextLeftOfset, 240);
-      ctx.fillText("7", 100 + TextLeftOfset, 240);
-      ctx.fillText("8", 200 + TextLeftOfset, 240);
-      ctx.fillText("9", 300 + TextLeftOfset, 240);
-      ctx.fillText("10", 385 + TextLeftOfset, 240);
-
-
-
-      if (splashScreenOn === true) {
-        if (current_keys.get("Enter") === true) {
-          if (levelOn === 1) {
-            BALLLIVE = true;
-            AISpeed = 2;
-          }
-          if (levelOn === 2) {
-            BALLLIVE = true;
-            AISpeed = 4;
-          }
-          if (levelOn === 3) {
-            BALLLIVE = true;
-            AISpeed = 6;
-          }
-          if (levelOn === 4) {
-            BALLLIVE = true;
-            AISpeed = 8;
-          }
-          if (levelOn === 5) {
-            BALLLIVE = true;
-            AISpeed = 10;
-          }
-          if (levelOn === 6) {
-            BALLLIVE = true;
-            AISpeed = 12;
-          }
-          if (levelOn === 7) {
-            BALLLIVE = true;
-            AISpeed = 14;
-          }
-          if (levelOn === 8) {
-            BALLLIVE = true;
-            AISpeed = 16;
-          }
-          if (levelOn === 9) {
-            BALLLIVE = true;
-            AISpeed = 18;
-          }
-          if (levelOn === 10) {
-            BALLLIVE = true;
-            AISpeed = 20;
-          }
-        }
-        if (BALLLIVE === true) {
-          ball.alive = true;
-        }
-      }
-    }
-  }
-}
 function draw_score(ctx) {
   ctx.font = "80px serif";
-  ctx.fillStyle = "#ffeecc";
+  ctx.fillStyle = "black";
   ctx.fillText(player.score, 250, 75);
   ctx.fillText(computer.score, 750, 75);
 }
@@ -303,7 +304,7 @@ function Flip_Controlls() {
 function draw_paddles_and_ball(ctx) {
   ctx.fillStyle = "#ffeecc";
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(PaddelSkin, player.posX, player.posY,14*2,70*2)
+  ctx.drawImage(PlayerPaddleSkin, player.posX, player.posY,14*2,70*2)
   ctx.drawImage(PaddelSkinAI, computer.posX, computer.posY,14*2,70*2)
 
   for (let t = 0; t < 5; t++) {
@@ -503,12 +504,12 @@ function clear_screen(ctx) {
   ctx.clearRect(0, 0, c.width, c.height);
 }
 function update() {
-  checkSplash();
+  checkSplash(ctx);
   //check for user input
-  game_check_keyboard();
+  game_check_keyboard(ctx);
 
-  updateLevelSelect();
-  checkSettingsWindow()
+  updateLevelSelect(ctx,c);
+  checkSettingsWindow(ctx)
 
 
   if(paused) {
@@ -517,14 +518,14 @@ function update() {
   } else {
     if (ball.alive === true) {
       // move the computer
-      update_computer_paddle();
+      update_computer_paddle(ctx);
       //check for wall collisions
-      check_wall_collisions();
+      check_wall_collisions(ctx);
       //check for paddle collisions
-      check_paddle_collisons();
-      checkScore();
-      update_particles();
-      Flip_Controlls()
+      check_paddle_collisons(ctx);
+      checkScore(ctx);
+      update_particles(ctx);
+      Flip_Controlls(ctx)
       ctx.save();
       if (screenShaking === true) {
         ctx.translate(Math.random() * 30, 0);
