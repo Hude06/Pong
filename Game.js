@@ -3,24 +3,29 @@ import {
   draw_particles,
   update_particles,
 } from "./particles.js";
+let TopHat = "/TopHatSkin.png";
+let ChristmasHat = "/ChristMasSkin.png";
+let Plain = "/PlainSkin.png"
+let snail = "/Snail.png"
+let RedBelt = "/RedBelt.png";
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
 const splashScreen = document.querySelector(".splash");
 const shake_enabled = true;
 const PlayerPaddleSkin = new Image();
+const CurrentEnemy = new Image();
 const PaddelSkinAI = new Image();
 const TopHatSkin = new Image();
 const ChristmasHatSkin = new Image();
 const PlainSkin = new Image();
+const RedBeltSkin = new Image();
+RedBeltSkin.src = "/RedBelt.png"
 PlainSkin.src = "/PlainSkin.png"
 TopHatSkin.src = "/TopHatSkin.png";
 ChristmasHatSkin.src = "/ChristMasSkin.png";
-let TopHat = "/TopHatSkin.png";
-let ChristmasHat = "/ChristMasSkin.png";
 PaddelSkinAI.src = "/PlainSkin.png";
-let Plain = "/PlainSkin.png"
 PlayerPaddleSkin.src = Plain;
-
+CurrentEnemy.src = snail;
 let paused = false;
 const DEBUG = {
   print_ai: false,
@@ -104,6 +109,7 @@ function StartLevelSelect(ctx, c) {
     LevelStart = true;
   }
 }
+let Enemy = false
 function updateLevelSelect(ctx, c) {
   if (ball.alive === false) {
     if (LevelStart === true) {
@@ -183,6 +189,7 @@ function updateLevelSelect(ctx, c) {
           if (levelOn === 1) {
             BALLLIVE = true;
             AISpeed = 2;
+            Enemy = true;
           }
           if (levelOn === 2) {
             BALLLIVE = true;
@@ -225,6 +232,24 @@ function updateLevelSelect(ctx, c) {
           ball.alive = true;
         }
       }
+    }
+  }
+}
+let CurrentEnemyPosX = 500
+let CurrentEnemyPosY = 325
+let EnemySpeed = 0.5
+function DrawCheckEnemy() {
+  if (Enemy === true) {
+    ctx.drawImage(CurrentEnemy,CurrentEnemyPosX,CurrentEnemyPosY,16*5,16*5)
+    if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
+    if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
+    if (player.posX+20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed 
+  }
+  // console.log("Ball" + ball.x)
+  // console.log("CureentEnemyX" + CurrentEnemyPosX)
+  if (ball.y === CurrentEnemyPosY) {
+    if (ball.x === CurrentEnemyPosX) {
+      console.log("COLIDED")
     }
   }
 }
@@ -307,6 +332,8 @@ function draw_settings_window() {
     ctx.drawImage(PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(ChristmasHatSkin, 350+140, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(RedBeltSkin, 350+145*2, 80, 14 * 1.2, 70 * 1.2);
+
 
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
@@ -317,6 +344,9 @@ function draw_settings_window() {
       }
       if (skinOn === 3) {
         PlayerPaddleSkin.src = ChristmasHat;
+      }
+      if (skinOn === 4) {
+        PlayerPaddleSkin.src = RedBelt;
       }
     }
   }
@@ -603,6 +633,7 @@ function update() {
       draw_score(ctx);
       draw_particles(ctx);
       draw_debug(ctx);
+      DrawCheckEnemy()
       ctx.restore();
     }
   }
