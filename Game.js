@@ -1,4 +1,6 @@
 import {ParticleSource} from "./particles.js";
+import {LevelSelector} from "./Levelselect.js"
+import {Level} from './level.js'
 const DEBUG = {
   print_ai: false,
   sound:false,
@@ -30,24 +32,6 @@ let ball = {
   x_speed: 5,
   alive: false,
 };
-let level1 = {
-  x: 10,
-  y: 98,
-  w: 50,
-  h: 55,
-};
-let level2 = {
-  x: 110,
-  y: 98,
-  w: 50,
-  h: 50,
-};
-let level3 = {
-  x: 210,
-  y: 98,
-  w: 50,
-  h: 50,
-};
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
 const splashScreen = document.querySelector(".splash");
@@ -64,46 +48,31 @@ fireball.src = "FireBall.png";
 let TopHat = "/TopHatSkin.png";
 let ChristmasHat = "/ChristMasSkin.png";
 let Plain = "/PlainSkin.png";
-let snail = "/Snail.png";
-let FireMan = "/FireMan.png";
 let RedBelt = "/RedBelt.png";
 let random_y_angle = null;
 ball.y += random_y_angle;
 let paused = false;
 let arrowUpPressed = false;
 let arrowDownPressed = false;
-let splash = null;
+let showing_splash = true;
 let soundEFX1 = new Audio("/explosion.wav");
 let soundEFX2 = new Audio("/click.wav");
 let soundEFX3 = new Audio("/ControllsFliped.wav");
 let screenShaking = false;
-let AISpeed = 2;
 let current_keys = new Map();
+let nav_keys = new Map()
 let FlipedControlles = false;
 let settingsWindowOpen = false;
 let settingRuned = false;
-let splashScreenOn = false;
-let BALLLIVE = false;
-let RectWidthLine = 5;
-let RectOfset = 40;
-let TextLeftOfset = 250;
-let OutlineOfset = 225;
-let RectLeftOfset = 250;
-let RectHeight = 100;
-let levelOn = 1;
-let LevelStart = false;
 let LeftPressed = false;
 let RightPressed = false;
 let skinOn = 1;
-let Enemy = false;
 let checkHealthBarVisable = true;
 let CurrentEnemyPosX = 500;
 let CurrentEnemyPosY = 325;
 let EnemySpeed = 0.5;
 let EnemyHealth = 10;
 let SoundedPlayed = false;
-let CurrentEnemyH = null;
-let CurrentEnemyW = null;
 RedBeltSkin.src = "/RedBelt.png";
 PlainSkin.src = "/PlainSkin.png";
 TopHatSkin.src = "/TopHatSkin.png";
@@ -113,155 +82,34 @@ PlayerPaddleSkin.src = Plain;
 CurrentEnemy.src = null;
 let FireBallPosx = 500;
 let FireBallPosy = CurrentEnemyPosY;
-let fireBallActive = null;
+
+const LEVEL1 = new Level()
+LEVEL1.fireBallActive = false
+LEVEL1.AISpeed = 2
+LEVEL1.CurrentEnemyW = 16 * 5;
+LEVEL1.CurrentEnemyH = 16 * 5;
+LEVEL1.Enemy = true
+LEVEL1.enemy_src = "/Snail.png";
+
+const LEVEL2 = new Level()
+LEVEL2.fireBallActive = true
+LEVEL2.AISpeed = 4
+LEVEL2.CurrentEnemyW = 16 * 3;
+LEVEL2.CurrentEnemyH = 16 * 3;
+LEVEL2.Enemy = true
+LEVEL2.enemy_src = "/FireMan.png";
+
+const LEVELS = [LEVEL1, LEVEL2]
+
+let level_select = new LevelSelector(LEVELS)
+let current_level = null
+
 random_y_angle = getRndInteger(-5, 5);
-function StartLevelSelect(ctx, c) {
-  if (LevelStart === false) {
-    LevelStart = true;
-  }
-}
 function drawFireBall() {
-  if (fireBallActive) {
+  if (current_level.fireBallActive) {
     FireBallPosx -= 1;
     ctx.drawImage(fireball, FireBallPosx, FireBallPosy, 16 * 3, 16 * 3);
   }
-}
-let LevelSelectorWords = "Level Select";
-function updateLevelSelect(ctx, c) {
-  if (ball.alive === false) {
-    if (LevelStart === true) {
-      ctx.fillStyle = "gray";
-      ctx.fillRect(0, 0, c.width, c.height);
-      //DrawOutline
-      if (levelOn === 1) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeStyle = "red";
-        ctx.strokeRect(level1.x + OutlineOfset, level1.y, level1.w, level1.h);
-      }
-      if (levelOn === 2) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(level2.x + OutlineOfset, level2.y, level1.w, level1.h);
-      }
-      if (levelOn === 3) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(level3.x + OutlineOfset, level3.y, level1.w, level1.h);
-      }
-      if (levelOn === 4) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(310 + OutlineOfset, 98, 50, 55);
-      }
-
-      if (levelOn === 5) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(410 + OutlineOfset, 98, 50, 55);
-      }
-      if (levelOn === 6) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(10 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 7) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(110 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 8) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(210 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 9) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(310 + OutlineOfset, 198, 50, 55);
-      }
-      if (levelOn === 10) {
-        ctx.lineWidth = RectWidthLine;
-        ctx.strokeRect(410 + OutlineOfset, 198, 50, 55);
-      }
-
-      //Draw Rects
-      ctx.font = "48px serif";
-      ctx.fillStyle = "blue";
-      //Number 1 Rect
-      ctx.fillRect(-15 + RectLeftOfset, RectHeight, 50, 50);
-      //Number 2 Rect
-      for (let i = 0; i < 400; i += 100) {
-        ctx.fillRect(75 + RectLeftOfset + i + 10, RectHeight, 50, 50);
-      }
-      ctx.fillRect(-15 + RectLeftOfset, RectHeight + 100, 50, 50);
-      for (let i = 0; i < 400; i += 100) {
-        ctx.fillRect(75 + RectLeftOfset + i + 10, RectHeight + 100, 50, 50);
-      }
-      ctx.fillStyle = "white";
-      ctx.fillText("1", 0 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("2", 100 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("3", 200 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("4", 300 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("5", 400 + TextLeftOfset, RectHeight + RectOfset);
-      ctx.fillText("6", 0 + TextLeftOfset, 240);
-      ctx.fillText("7", 100 + TextLeftOfset, 240);
-      ctx.fillText("8", 200 + TextLeftOfset, 240);
-      ctx.fillText("9", 300 + TextLeftOfset, 240);
-      ctx.fillText("10", 385 + TextLeftOfset, 240);
-
-      if (splashScreenOn === true) {
-        if (current_keys.get("Enter") === true) {
-          if (levelOn === 1) {
-            BALLLIVE = true;
-            fireBallActive = false;
-            AISpeed = 2;
-            CurrentEnemyW = 16 * 5;
-            CurrentEnemyH = 16 * 5;
-            CurrentEnemy.src = snail;
-            Enemy = true;
-          }
-          if (levelOn === 2) {
-            BALLLIVE = true;
-            fireBallActive = true;
-            AISpeed = 4;
-            CurrentEnemyW = 16 * 3;
-            CurrentEnemyH = 16 * 3;
-            CurrentEnemy.src = FireMan;
-            Enemy = true;
-          }
-          if (levelOn === 3) {
-            BALLLIVE = true;
-            AISpeed = 6;
-          }
-          if (levelOn === 4) {
-            BALLLIVE = true;
-            AISpeed = 8;
-          }
-          if (levelOn === 5) {
-            BALLLIVE = true;
-            AISpeed = 10;
-          }
-          if (levelOn === 6) {
-            BALLLIVE = true;
-            AISpeed = 12;
-          }
-          if (levelOn === 7) {
-            BALLLIVE = true;
-            AISpeed = 14;
-          }
-          if (levelOn === 8) {
-            BALLLIVE = true;
-            AISpeed = 16;
-          }
-          if (levelOn === 9) {
-            BALLLIVE = true;
-            AISpeed = 18;
-          }
-          if (levelOn === 10) {
-            BALLLIVE = true;
-            AISpeed = 20;
-          }
-        }
-        if (BALLLIVE === true) {
-          ball.alive = true;
-        }
-      }
-    }
-  }
-  ctx.font = "48px Roboto";
-  ctx.fillText(LevelSelectorWords, c.width / 2 - 150, c.height / 2 - 250);
 }
 function DrawEnemyHeathBar() {
   if (checkHealthBarVisable === true) {
@@ -281,13 +129,13 @@ function CheckEnemyHealth() {
   }
 }
 function DrawCheckEnemy() {
-  if (Enemy === true) {
+  if (current_level.Enemy === true) {
     ctx.drawImage(
       CurrentEnemy,
       CurrentEnemyPosX,
       CurrentEnemyPosY,
-      CurrentEnemyW,
-      CurrentEnemyH
+      current_level.CurrentEnemyW,
+      current_level.CurrentEnemyH
     );
     if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
     if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
@@ -399,6 +247,7 @@ function reset_ball() {
 function setup_keyboard() {
   window.addEventListener("keydown", function (event) {
     current_keys.set(event.key, true);
+    nav_keys.set(event.key,true)
   });
   window.addEventListener("keyup", function (event) {
     current_keys.set(event.key, false);
@@ -474,15 +323,14 @@ function checkScore() {
   }
 }
 function checkSplash() {
-  if (splash === true) {
+  if (showing_splash === true) {
     splashScreen.style.opacity = 0;
     setTimeout(() => {
       splashScreen.classList.add("hidden");
-      splashScreenOn = true;
-    }, 610);
+      showing_splash = false
+      level_select.set_visible(true)
+    }, 500);
   }
-  StartLevelSelect();
-  //   ball.alive = true
 }
 
 function play_hit_paddle_sound() {
@@ -520,7 +368,6 @@ function check_wall_collisions() {
 function game_check_keyboard() {
   if (current_keys.get("ArrowRight") === true) {
     if (arrowUpPressed === false) {
-      levelOn += 1;
       arrowUpPressed = true;
       arrowDownPressed = false;
     }
@@ -531,7 +378,6 @@ function game_check_keyboard() {
 
   if (current_keys.get("ArrowLeft") === true) {
     if (arrowDownPressed === false) {
-      levelOn -= 1;
       arrowUpPressed = false;
       arrowDownPressed = true;
     }
@@ -540,7 +386,7 @@ function game_check_keyboard() {
     arrowDownPressed = false;
   }
   if (current_keys.get("Enter") === true) {
-    splash = true;
+    showing_splash = true;
   }
   if (current_keys.get("w") || current_keys.get("ArrowUp")) {
     if (FlipedControlles === false) {
@@ -612,14 +458,14 @@ function check_paddle_collisons() {
   ball.y = ball.y + random_y_angle;
 }
 function update_computer_paddle() {
-  if (computer.posY + 35 <= ball.y) computer.posY += AISpeed;
-  if (computer.posY + 35 >= ball.y) computer.posY -= AISpeed;
+  if (computer.posY + 35 <= ball.y) computer.posY += current_level.AISpeed;
+  if (computer.posY + 35 >= ball.y) computer.posY -= current_level.AISpeed;
 }
 function draw_debug(ctx) {
   if (DEBUG.print_ai) {
     ctx.fillStyle = "red";
     ctx.font = "24px sans-serif";
-    ctx.fillText("ai speed = " + AISpeed, 100, 100);
+    ctx.fillText("ai speed = " + current_level.AISpeed, 100, 100);
     ctx.fillText("ball speed = " + ball.x_speed, 100, 130);
   }
 }
@@ -633,7 +479,17 @@ function update() {
   //check for user input
   game_check_keyboard(ctx);
 
-  updateLevelSelect(ctx, c);
+  if(ball.alive === false) {
+    level_select.check_input(nav_keys)
+    if(level_select.finished) {
+      ball.alive = true
+      console.log("really starting the level", level_select.levelOn)
+      current_level = LEVELS[level_select.levelOn-1]
+      CurrentEnemy.src = current_level.enemy_src
+      level_select.set_visible(false)
+    }
+    level_select.draw(ctx, c);
+  }
   checkSettingsWindow(ctx);
 
   if (paused) {
@@ -669,6 +525,7 @@ function update() {
     }
   }
 
+  nav_keys.clear()
   window.requestAnimationFrame(update);
 }
 function start() {
