@@ -3,30 +3,6 @@ import {
   draw_particles,
   update_particles,
 } from "./particles.js";
-let TopHat = "/TopHatSkin.png";
-let ChristmasHat = "/ChristMasSkin.png";
-let Plain = "/PlainSkin.png"
-let snail = "/Snail.png"
-let RedBelt = "/RedBelt.png";
-const c = document.getElementById("Game");
-const ctx = c.getContext("2d");
-const splashScreen = document.querySelector(".splash");
-const shake_enabled = true;
-const PlayerPaddleSkin = new Image();
-const CurrentEnemy = new Image();
-const PaddelSkinAI = new Image();
-const TopHatSkin = new Image();
-const ChristmasHatSkin = new Image();
-const PlainSkin = new Image();
-const RedBeltSkin = new Image();
-RedBeltSkin.src = "/RedBelt.png"
-PlainSkin.src = "/PlainSkin.png"
-TopHatSkin.src = "/TopHatSkin.png";
-ChristmasHatSkin.src = "/ChristMasSkin.png";
-PaddelSkinAI.src = "/PlainSkin.png";
-PlayerPaddleSkin.src = Plain;
-CurrentEnemy.src = snail;
-let paused = false;
 const DEBUG = {
   print_ai: false,
 };
@@ -53,30 +29,6 @@ let ball = {
   x_speed: 5,
   alive: false,
 };
-
-let arrowUpPressed = false;
-let arrowDownPressed = false;
-let splash = null;
-let random_y_angle = null;
-let soundEFX1 = new Audio("/explosion.wav");
-let soundEFX2 = new Audio("/click.wav");
-let soundEFX3 = new Audio("/ControllsFliped.wav");
-
-random_y_angle = getRndInteger(-5, 5);
-ball.y += random_y_angle;
-let screenShaking = false;
-let AISpeed = 2;
-let current_keys = new Map();
-
-ctx.font = "50px pacifico_font";
-ctx.fillStyle = "#f0f6f0";
-let FlipedControlles = false;
-let settingsWindowOpen = false;
-let settingRuned = false;
-
-let splashScreenOn = false;
-let BALLLIVE = false;
-let levelLeftOfset = 100;
 let level1 = {
   x: 10,
   y: 98,
@@ -89,13 +41,53 @@ let level2 = {
   w: 50,
   h: 50,
 };
-
 let level3 = {
   x: 210,
   y: 98,
   w: 50,
   h: 50,
 };
+const c = document.getElementById("Game");
+const ctx = c.getContext("2d");
+const splashScreen = document.querySelector(".splash");
+const shake_enabled = true;
+const PlayerPaddleSkin = new Image();
+const CurrentEnemy = new Image();
+const PaddelSkinAI = new Image();
+const TopHatSkin = new Image();
+const ChristmasHatSkin = new Image();
+const PlainSkin = new Image();
+const RedBeltSkin = new Image();
+RedBeltSkin.src = "/RedBelt.png";
+PlainSkin.src = "/PlainSkin.png";
+TopHatSkin.src = "/TopHatSkin.png";
+ChristmasHatSkin.src = "/ChristMasSkin.png";
+PaddelSkinAI.src = "/PlainSkin.png";
+PlayerPaddleSkin.src = Plain;
+CurrentEnemy.src = snail;
+random_y_angle = getRndInteger(-5, 5);
+ball.y += random_y_angle;
+let TopHat = "/TopHatSkin.png";
+let ChristmasHat = "/ChristMasSkin.png";
+let Plain = "/PlainSkin.png";
+let snail = "/Snail.png";
+let RedBelt = "/RedBelt.png";
+let paused = false;
+let arrowUpPressed = false;
+let arrowDownPressed = false;
+let splash = null;
+let random_y_angle = null;
+let soundEFX1 = new Audio("/explosion.wav");
+let soundEFX2 = new Audio("/click.wav");
+let soundEFX3 = new Audio("/ControllsFliped.wav");
+let screenShaking = false;
+let AISpeed = 2;
+let current_keys = new Map();
+let FlipedControlles = false;
+let settingsWindowOpen = false;
+let settingRuned = false;
+let splashScreenOn = false;
+let BALLLIVE = false;
 let RectWidthLine = 5;
 let RectOfset = 40;
 let TextLeftOfset = 250;
@@ -104,12 +96,21 @@ let RectLeftOfset = 250;
 let RectHeight = 100;
 let levelOn = 1;
 let LevelStart = false;
+let LeftPressed = false;
+let RightPressed = false;
+let skinOn = 1;
+let Enemy = false;
+let checkHealthBarVisable = true;
+let CurrentEnemyPosX = 500;
+let CurrentEnemyPosY = 325;
+let EnemySpeed = 0.5;
+let EnemyHealth = 10;
+let SoundedPlayed = false;
 function StartLevelSelect(ctx, c) {
   if (LevelStart === false) {
     LevelStart = true;
   }
 }
-let Enemy = false
 function updateLevelSelect(ctx, c) {
   if (ball.alive === false) {
     if (LevelStart === true) {
@@ -235,27 +236,37 @@ function updateLevelSelect(ctx, c) {
     }
   }
 }
-let CurrentEnemyPosX = 500
-let CurrentEnemyPosY = 325
-let EnemySpeed = 0.5
-function DrawCheckEnemy() {
-  if (Enemy === true) {
-    ctx.drawImage(CurrentEnemy,CurrentEnemyPosX,CurrentEnemyPosY,16*5,16*5)
-    if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
-    if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
-    if (player.posX+20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed 
+function DrawEnemyHeathBar() {
+  if (checkHealthBarVisable === true) {
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "red";
+    ctx.strokeRect(500 - 100, 600, 200, 25);
+    ctx.fillStyle = "black";
+    ctx.fillRect(500 - 98, 600 + 2, EnemyHealth * 20, 22);
   }
-  // console.log("Ball" + ball.x)
-  // console.log("CureentEnemyX" + CurrentEnemyPosX)
-  if (ball.y === CurrentEnemyPosY) {
-    if (ball.x === CurrentEnemyPosX) {
-      console.log("COLIDED")
+}
+function CheckEnemyHealth() {
+  if (checkHealthBarVisable === true) {
+    EnemyHealth -= 0.01;
+    if (EnemyHealth <= 0) {
+      EnemyHealth = 0;
     }
   }
 }
-let LeftPressed = false;
-let RightPressed = false;
-let skinOn = 1;
+function DrawCheckEnemy() {
+  if (Enemy === true) {
+    ctx.drawImage(
+      CurrentEnemy,
+      CurrentEnemyPosX,
+      CurrentEnemyPosY,
+      16 * 5,
+      16 * 5
+    );
+    if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
+    if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
+    if (player.posX + 20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed;
+  }
+}
 function draw_settings_window() {
   if (settingsWindowOpen === true) {
     ctx.imageSmoothingEnabled = false;
@@ -331,9 +342,8 @@ function draw_settings_window() {
     // }
     ctx.drawImage(PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(ChristmasHatSkin, 350+140, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(RedBeltSkin, 350+145*2, 80, 14 * 1.2, 70 * 1.2);
-
+    ctx.drawImage(ChristmasHatSkin, 350 + 140, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(RedBeltSkin, 350 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
 
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
@@ -387,14 +397,12 @@ function setup_keyboard() {
     current_keys.set(event.key, false);
   });
 }
-
 function draw_score(ctx) {
   ctx.font = "80px serif";
   ctx.fillStyle = "black";
   ctx.fillText(player.score, 250, 75);
   ctx.fillText(computer.score, 750, 75);
 }
-let SoundedPlayed = false;
 function Flip_Controlls() {
   if (FlipedControlles === true) {
     if (SoundedPlayed === false) {
@@ -622,6 +630,7 @@ function update() {
       checkScore(ctx);
       update_particles(ctx);
       Flip_Controlls(ctx);
+      CheckEnemyHealth();
       ctx.save();
       if (screenShaking === true) {
         ctx.translate(Math.random() * 30, 0);
@@ -633,14 +642,14 @@ function update() {
       draw_score(ctx);
       draw_particles(ctx);
       draw_debug(ctx);
-      DrawCheckEnemy()
+      DrawCheckEnemy();
+      DrawEnemyHeathBar();
       ctx.restore();
     }
   }
 
   window.requestAnimationFrame(update);
 }
-
 function start() {
   if (ball.alive === true) {
     draw_score(ctx);
