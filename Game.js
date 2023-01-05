@@ -1,12 +1,12 @@
-import {
-  start_particles,
-  draw_particles,
-  update_particles,
-} from "./particles.js";
+import {ParticleSource} from "./particles.js";
 const DEBUG = {
   print_ai: false,
   sound:false,
+  particles:true,
 };
+
+let particles = new ParticleSource()
+particles.particles_enabled = DEBUG.particles
 let player = {
   score: 0,
   posX: 100,
@@ -495,7 +495,7 @@ function check_wall_collisions() {
   // check top wall
   if (ball.y <= 20) {
     ball.y = 20;
-    start_particles(ball.x, ball.y);
+    particles.start_particles(ball.x, ball.y);
     random_y_angle = getRndInteger(1, 5);
     ball.y += random_y_angle;
     play_hit_wall_sound()
@@ -503,7 +503,7 @@ function check_wall_collisions() {
   }
   // check bottom wall
   if (ball.y >= 630) {
-    start_particles(ball.x, ball.y);
+    particles.start_particles(ball.x, ball.y);
     ball.y = 600;
     random_y_angle = getRndInteger(-5, -1);
     ball.y += random_y_angle;
@@ -585,7 +585,7 @@ function check_paddle_collisons() {
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
     ball.y += random_y_angle;
-    start_particles(ball.x, ball.y);
+    particles.start_particles(ball.x, ball.y);
     start_screen_shake();
     return;
   }
@@ -603,7 +603,7 @@ function check_paddle_collisons() {
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
     ball.y += random_y_angle;
-    start_particles(ball.x, ball.y);
+    particles.start_particles(ball.x, ball.y);
     start_screen_shake();
     return;
   }
@@ -648,7 +648,7 @@ function update() {
       //check for paddle collisions
       check_paddle_collisons(ctx);
       checkScore(ctx);
-      update_particles(ctx);
+      particles.update_particles(ctx);
       Flip_Controlls(ctx);
       CheckEnemyHealth();
       ctx.save();
@@ -660,7 +660,7 @@ function update() {
       draw_paddles_and_ball(ctx);
       draw_net(ctx);
       draw_score(ctx);
-      draw_particles(ctx);
+      particles.draw_particles(ctx);
       draw_debug(ctx);
       DrawCheckEnemy();
       DrawEnemyHeathBar();
