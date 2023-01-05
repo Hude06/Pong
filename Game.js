@@ -5,6 +5,7 @@ import {
 } from "./particles.js";
 const DEBUG = {
   print_ai: false,
+  sound:false,
 };
 let player = {
   score: 0,
@@ -411,7 +412,7 @@ function draw_score(ctx) {
 }
 function Flip_Controlls() {
   if (FlipedControlles === true) {
-    if (SoundedPlayed === false) {
+    if (SoundedPlayed === false && DEBUG.sound) {
       soundEFX3.play();
       SoundedPlayed = true;
     }
@@ -448,18 +449,24 @@ function draw_net(ctx) {
 function getRndInteger(min, max) {
   return Math.floor(Math.random() * (max - min)) + min;
 }
-function checkScore() {
-  if (ball.x <= 0) {
+
+function play_hit_wall_sound() {
+  if(DEBUG.sound === true) {
     soundEFX1.currentTime = 0.1;
     soundEFX1.play();
+  }
+}
+
+function checkScore() {
+  if (ball.x <= 0) {
+    play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
     reset_ball();
     computer.score += 1;
   }
   if (ball.x >= 950) {
-    soundEFX1.currentTime = 0.1;
-    soundEFX1.play();
+    play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
     reset_ball();
@@ -477,6 +484,13 @@ function checkSplash() {
   StartLevelSelect();
   //   ball.alive = true
 }
+
+function play_hit_paddle_sound() {
+  if(DEBUG.sound) {
+    soundEFX2.play();
+  }
+}
+
 function check_wall_collisions() {
   // check top wall
   if (ball.y <= 20) {
@@ -484,7 +498,7 @@ function check_wall_collisions() {
     start_particles(ball.x, ball.y);
     random_y_angle = getRndInteger(1, 5);
     ball.y += random_y_angle;
-    soundEFX2.play();
+    play_hit_wall_sound()
     start_screen_shake();
   }
   // check bottom wall
@@ -493,7 +507,7 @@ function check_wall_collisions() {
     ball.y = 600;
     random_y_angle = getRndInteger(-5, -1);
     ball.y += random_y_angle;
-    soundEFX2.play();
+    play_hit_wall_sound()
     start_screen_shake();
   }
   if (player.posY <= 0) {
@@ -568,7 +582,7 @@ function check_paddle_collisons() {
     ball.x = 115;
     ball.x_speed *= -1;
     ball.x += ball.x_speed;
-    soundEFX2.play();
+    play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
     ball.y += random_y_angle;
     start_particles(ball.x, ball.y);
@@ -586,7 +600,7 @@ function check_paddle_collisons() {
     ball.x = 880;
     ball.x_speed *= -1;
     ball.x += ball.x_speed;
-    soundEFX2.play();
+    play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
     ball.y += random_y_angle;
     start_particles(ball.x, ball.y);
