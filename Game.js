@@ -58,25 +58,20 @@ const TopHatSkin = new Image();
 const ChristmasHatSkin = new Image();
 const PlainSkin = new Image();
 const RedBeltSkin = new Image();
-RedBeltSkin.src = "/RedBelt.png";
-PlainSkin.src = "/PlainSkin.png";
-TopHatSkin.src = "/TopHatSkin.png";
-ChristmasHatSkin.src = "/ChristMasSkin.png";
-PaddelSkinAI.src = "/PlainSkin.png";
-PlayerPaddleSkin.src = Plain;
-CurrentEnemy.src = snail;
-random_y_angle = getRndInteger(-5, 5);
-ball.y += random_y_angle;
+const fireball = new Image();
+fireball.src = "FireBall.png"
 let TopHat = "/TopHatSkin.png";
 let ChristmasHat = "/ChristMasSkin.png";
-let Plain = "/PlainSkin.png";
-let snail = "/Snail.png";
+let Plain = "/PlainSkin.png"
+let snail = "/Snail.png"
+let FireMan = "/FireMan.png"
 let RedBelt = "/RedBelt.png";
+let random_y_angle = null;
+ball.y += random_y_angle;
 let paused = false;
 let arrowUpPressed = false;
 let arrowDownPressed = false;
 let splash = null;
-let random_y_angle = null;
 let soundEFX1 = new Audio("/explosion.wav");
 let soundEFX2 = new Audio("/click.wav");
 let soundEFX3 = new Audio("/ControllsFliped.wav");
@@ -99,18 +94,38 @@ let LevelStart = false;
 let LeftPressed = false;
 let RightPressed = false;
 let skinOn = 1;
-let Enemy = false;
+let Enemy = false
 let checkHealthBarVisable = true;
-let CurrentEnemyPosX = 500;
-let CurrentEnemyPosY = 325;
-let EnemySpeed = 0.5;
+let CurrentEnemyPosX = 500
+let CurrentEnemyPosY = 325
+let EnemySpeed = 0.5
 let EnemyHealth = 10;
 let SoundedPlayed = false;
+let CurrentEnemyH = null;
+let CurrentEnemyW = null;
+RedBeltSkin.src = "/RedBelt.png"
+PlainSkin.src = "/PlainSkin.png"
+TopHatSkin.src = "/TopHatSkin.png";
+ChristmasHatSkin.src = "/ChristMasSkin.png";
+PaddelSkinAI.src = "/PlainSkin.png";
+PlayerPaddleSkin.src = Plain;
+CurrentEnemy.src = null;
+let FireBallPosx = 500;
+let FireBallPosy = CurrentEnemyPosY;
+let fireBallActive = null;
+random_y_angle = getRndInteger(-5, 5);
 function StartLevelSelect(ctx, c) {
   if (LevelStart === false) {
     LevelStart = true;
   }
 }
+function drawFireBall() {
+  if (fireBallActive) {
+    FireBallPosx -= 1;
+    ctx.drawImage(fireball,FireBallPosx,FireBallPosy,16*3,16*3);
+  }
+}
+let LevelSelectorWords = "Level Select"
 function updateLevelSelect(ctx, c) {
   if (ball.alive === false) {
     if (LevelStart === true) {
@@ -189,12 +204,21 @@ function updateLevelSelect(ctx, c) {
         if (current_keys.get("Enter") === true) {
           if (levelOn === 1) {
             BALLLIVE = true;
+            fireBallActive = false;
             AISpeed = 2;
+            CurrentEnemyW = 16*5;
+            CurrentEnemyH = 16*5;
+            CurrentEnemy.src = snail;
             Enemy = true;
           }
           if (levelOn === 2) {
             BALLLIVE = true;
+            fireBallActive = true;
             AISpeed = 4;
+            CurrentEnemyW = 16*3;
+            CurrentEnemyH = 16*3;
+            CurrentEnemy.src = FireMan;
+            Enemy = true;
           }
           if (levelOn === 3) {
             BALLLIVE = true;
@@ -235,14 +259,16 @@ function updateLevelSelect(ctx, c) {
       }
     }
   }
+  ctx.font = "48px Roboto";
+  ctx.fillText(LevelSelectorWords, c.width/2-150, c.height/2-250);
 }
 function DrawEnemyHeathBar() {
   if (checkHealthBarVisable === true) {
     ctx.lineWidth = 4;
-    ctx.strokeStyle = "red";
-    ctx.strokeRect(500 - 100, 600, 200, 25);
+    ctx.strokeStyle = "red"
+    ctx.strokeRect(500-100,600,200,25)
     ctx.fillStyle = "black";
-    ctx.fillRect(500 - 98, 600 + 2, EnemyHealth * 20, 22);
+    ctx.fillRect(500-98,600+2,EnemyHealth*20,22)
   }
 }
 function CheckEnemyHealth() {
@@ -255,21 +281,15 @@ function CheckEnemyHealth() {
 }
 function DrawCheckEnemy() {
   if (Enemy === true) {
-    ctx.drawImage(
-      CurrentEnemy,
-      CurrentEnemyPosX,
-      CurrentEnemyPosY,
-      16 * 5,
-      16 * 5
-    );
+    ctx.drawImage(CurrentEnemy,CurrentEnemyPosX,CurrentEnemyPosY,CurrentEnemyW,CurrentEnemyH)
     if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
     if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
-    if (player.posX + 20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed;
+    if (player.posX+20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed 
   }
 }
 function draw_settings_window() {
   if (settingsWindowOpen === true) {
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
     ctx.fillStyle = "red";
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "blue";
@@ -320,30 +340,11 @@ function draw_settings_window() {
       ctx.strokeStyle = "black";
       ctx.strokeRect(145 + 150 * skinOn - 150, 70, 110, 110);
     }
-    // if (skinOn === 6) {
-    //   ctx.strokeStyle = "black"
-    //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
-    // }
-    // if (skinOn === 7) {
-    //   ctx.strokeStyle = "black"
-    //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
-    // }
-    // if (skinOn === 8) {
-    //   ctx.strokeStyle = "black"
-    //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
-    // }
-    // if (skinOn === 9) {
-    //   ctx.strokeStyle = "black"
-    //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
-    // }
-    // if (skinOn === 10) {
-    //   ctx.strokeStyle = "black"
-    //   ctx.strokeRect (145 + 150*skinOn-150,70,110,110)
-    // }
     ctx.drawImage(PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(ChristmasHatSkin, 350 + 140, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(RedBeltSkin, 350 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(ChristmasHatSkin, 350+140, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(RedBeltSkin, 350+145*2, 80, 14 * 1.2, 70 * 1.2);
+
 
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
@@ -642,8 +643,9 @@ function update() {
       draw_score(ctx);
       draw_particles(ctx);
       draw_debug(ctx);
-      DrawCheckEnemy();
+      DrawCheckEnemy()
       DrawEnemyHeathBar();
+      drawFireBall()
       ctx.restore();
     }
   }
