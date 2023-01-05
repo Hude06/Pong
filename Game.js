@@ -1,6 +1,7 @@
 import {ParticleSource} from "./particles.js";
 import {LevelSelector} from "./Levelselect.js"
 import {Level} from './level.js'
+import {Bounds, Point, Size} from "./node_modules/josh_js_util/dist/index.js"
 const DEBUG = {
   print_ai: false,
   sound:false,
@@ -11,8 +12,9 @@ let particles = new ParticleSource()
 particles.particles_enabled = DEBUG.particles
 let player = {
   score: 0,
-  posX: 100,
-  posY: 165,
+  // posX: 100,
+  // posY: 165,
+  bounds: new Bounds(new Point(100,165), new Size(14,70))
 };
 let paddle = {
   w: 14,
@@ -23,15 +25,13 @@ let computer = {
   posY: 265,
   score: 0,
 };
+
 let ball = {
-  x: 400,
-  y: 200,
-  r: 5,
-  width: 10,
-  height: 10,
+  bounds : new Bounds(new Point(400, 200), new Size(10, 10)),
   x_speed: 5,
   alive: false,
-};
+}
+
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
 const splashScreen = document.querySelector(".splash");
@@ -50,7 +50,6 @@ let ChristmasHat = "/ChristMasSkin.png";
 let Plain = "/PlainSkin.png";
 let RedBelt = "/RedBelt.png";
 let random_y_angle = null;
-ball.y += random_y_angle;
 let paused = false;
 let arrowUpPressed = false;
 let arrowDownPressed = false;
@@ -68,8 +67,7 @@ let LeftPressed = false;
 let RightPressed = false;
 let skinOn = 1;
 let checkHealthBarVisable = true;
-let CurrentEnemyPosX = 500;
-let CurrentEnemyPosY = 325;
+let current_enemy_bounds = new Bounds(new Point(500,325), new Size(10,10))
 let EnemySpeed = 0.5;
 let EnemyHealth = 10;
 let SoundedPlayed = false;
@@ -81,7 +79,7 @@ PaddelSkinAI.src = "/PlainSkin.png";
 PlayerPaddleSkin.src = Plain;
 CurrentEnemy.src = null;
 let FireBallPosx = 500;
-let FireBallPosy = CurrentEnemyPosY;
+let FireBallPosy = 325//CurrentEnemyPosY;
 
 const LEVEL1 = new Level()
 LEVEL1.fireBallActive = false
@@ -128,18 +126,18 @@ function CheckEnemyHealth() {
     }
   }
 }
-function DrawCheckEnemy() {
+function draw_enemy() {
   if (current_level.Enemy === true) {
     ctx.drawImage(
       CurrentEnemy,
-      CurrentEnemyPosX,
-      CurrentEnemyPosY,
-      current_level.CurrentEnemyW,
-      current_level.CurrentEnemyH
+      current_enemy_bounds.position.x,
+      current_enemy_bounds.position.y,
+      current_enemy_bounds.size.w,
+      current_enemy_bounds.size.h
     );
-    if (player.posY + 35 <= CurrentEnemyPosY) CurrentEnemyPosY -= EnemySpeed;
-    if (player.posY + 35 >= CurrentEnemyPosY) CurrentEnemyPosY += EnemySpeed;
-    if (player.posX + 20 <= CurrentEnemyPosX) CurrentEnemyPosX -= EnemySpeed;
+    if (player.bounds.position.y + player.bounds.size.w <= current_enemy_bounds.position.y) current_enemy_bounds.position.y -= EnemySpeed;
+    if (player.bounds.position.y + 35 >= current_enemy_bounds.position.y) current_enemy_bounds.position.y += EnemySpeed;
+    if (player.bounds.position.y + 20 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= EnemySpeed;
   }
 }
 function draw_settings_window() {
@@ -233,16 +231,10 @@ function reset_ball() {
   player.posY = 165;
   computer.posX = 900;
   computer.posY = 265;
-  ball.width = 10;
-  ball.height = 10;
-  //   if (settingsWindowOpen === false) {
-  //     ball.alive = true;
-  //   }
   screenShaking = false;
-  ball.x = 400;
-  ball.y = 200;
+  ball.bounds.position = new Point(400,200)
   random_y_angle = getRndInteger(-5, 5);
-  ball.y += random_y_angle;
+  ball.bounds.position.y += random_y_angle;
 }
 function setup_keyboard() {
   window.addEventListener("keydown", function (event) {
@@ -270,7 +262,11 @@ function Flip_Controlls() {
 function draw_paddles_and_ball(ctx) {
   ctx.fillStyle = "#ffeecc";
   ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(PlayerPaddleSkin, player.posX, player.posY, 14 * 2, 70 * 2);
+  ctx.drawImage(PlayerPaddleSkin,
+      player.bounds.position.x, player.bounds.position.y,
+      player.bounds.size.w,
+      player.bounds.size.h,
+);
   ctx.drawImage(PaddelSkinAI, computer.posX, computer.posY, 14 * 2, 70 * 2);
 
   for (let t = 0; t < 5; t++) {
@@ -280,14 +276,14 @@ function draw_paddles_and_ball(ctx) {
     let b = Math.floor(per * 163);
     ctx.fillStyle = `rgba(${r},${g},${b},${100 - per * 100}%)`;
     ctx.fillRect(
-      ball.x + ball.x_speed * -t,
-      ball.y + random_y_angle * -t,
-      ball.width + t,
-      ball.height + t
+      ball.bounds.position.x + ball.x_speed * -t,
+      ball.bounds.position.y + random_y_angle * -t,
+      ball.bounds.size.w + t,
+      ball.bounds.size.h + t
     );
   }
   ctx.fillStyle = "#ff6973";
-  ctx.fillRect(ball.x, ball.y, ball.width, ball.height);
+  ctx.fillRect(ball.bounds.position.x, ball.bounds.position.y, ball.bounds.size.width, ball.bounds.size.height);
 }
 function draw_net(ctx) {
   for (let i = 0; i < c.height; i += 20) {
@@ -307,14 +303,14 @@ function play_hit_wall_sound() {
 }
 
 function checkScore() {
-  if (ball.x <= 0) {
+  if (ball.bounds.position.x <= 0) {
     play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
     reset_ball();
     computer.score += 1;
   }
-  if (ball.x >= 950) {
+  if (ball.bounds.position.x >= 950) {
     play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
@@ -341,28 +337,28 @@ function play_hit_paddle_sound() {
 
 function check_wall_collisions() {
   // check top wall
-  if (ball.y <= 20) {
-    ball.y = 20;
-    particles.start_particles(ball.x, ball.y);
+  if (ball.bounds.position.y <= 20) {
+    ball.bounds.position.y = 20;
+    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
     random_y_angle = getRndInteger(1, 5);
-    ball.y += random_y_angle;
+    ball.bounds.position.y += random_y_angle;
     play_hit_wall_sound()
     start_screen_shake();
   }
   // check bottom wall
-  if (ball.y >= 630) {
-    particles.start_particles(ball.x, ball.y);
-    ball.y = 600;
+  if (ball.bounds.position.y >= 630) {
+    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
+    ball.bounds.position.y = 600;
     random_y_angle = getRndInteger(-5, -1);
-    ball.y += random_y_angle;
+    ball.bounds.position.y += random_y_angle;
     play_hit_wall_sound()
     start_screen_shake();
   }
-  if (player.posY <= 0) {
-    player.posY = 0;
+  if (player.bounds.position.y <= 0) {
+    player.bounds.position.y = 0;
   }
-  if (player.posY >= 580) {
-    player.posY = 580;
+  if (player.bounds.position.y >= 580) {
+    player.bounds.position.y = 580;
   }
 }
 function game_check_keyboard() {
@@ -390,20 +386,22 @@ function game_check_keyboard() {
   }
   if (current_keys.get("w") || current_keys.get("ArrowUp")) {
     if (FlipedControlles === false) {
-      player.posY -= 5;
+      player.bounds.position.y -= 5;
     }
   }
   if (current_keys.get("s") || current_keys.get("ArrowDown")) {
-    if (FlipedControlles === false) [(player.posY += 5)];
+    if (FlipedControlles === false) {
+      player.bounds.position.y += 5;
+    }
   }
   if (current_keys.get("w") || current_keys.get("ArrowUp")) {
     if (FlipedControlles === true) {
-      player.posY += 5;
+      player.bounds.position.y += 5;
     }
   }
   if (current_keys.get("s") || current_keys.get("ArrowDown")) {
     if (FlipedControlles === true) {
-      player.posY -= 5;
+      player.bounds.position.y -= 5;
     }
   }
 }
@@ -417,21 +415,17 @@ function start_screen_shake() {
 }
 function check_paddle_collisons() {
   // move the ball
-  let new_ball_x = ball.x + ball.x_speed;
+  let new_ball_x = ball.bounds.position.x + ball.x_speed;
   //if ball hit player paddle
   //reverse direction
-  if (
-    new_ball_x <= 115 &&
-    ball.y >= player.posY &&
-    ball.y <= player.posY + paddle.h * 2
-  ) {
-    ball.x = 115;
+  if(ball.bounds.intersects(player.bounds)) {
+    ball.bounds.position.x = player.bounds.position.x + player.bounds.size.w;
     ball.x_speed *= -1;
-    ball.x += ball.x_speed;
+    ball.bounds.position.x += ball.x_speed;
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
-    ball.y += random_y_angle;
-    particles.start_particles(ball.x, ball.y);
+    ball.bounds.position.y += random_y_angle;
+    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
     start_screen_shake();
     return;
   }
@@ -440,26 +434,26 @@ function check_paddle_collisons() {
   //reverse direction
   if (
     new_ball_x >= 880 &&
-    ball.y >= computer.posY &&
-    ball.y <= computer.posY + paddle.h * 2
+    ball.bounds.position.y >= computer.posY &&
+    ball.bounds.position.y <= computer.posY + paddle.h * 2
   ) {
-    ball.x = 880;
+    ball.bounds.position.x = 880;
     ball.x_speed *= -1;
-    ball.x += ball.x_speed;
+    ball.bounds.position.x += ball.x_speed;
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
-    ball.y += random_y_angle;
-    particles.start_particles(ball.x, ball.y);
+    ball.bounds.position.y += random_y_angle;
+    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
     start_screen_shake();
     return;
   }
 
-  ball.x = new_ball_x;
-  ball.y = ball.y + random_y_angle;
+  ball.bounds.position.x = new_ball_x;
+  ball.bounds.position.y = ball.bounds.position.y + random_y_angle;
 }
 function update_computer_paddle() {
-  if (computer.posY + 35 <= ball.y) computer.posY += current_level.AISpeed;
-  if (computer.posY + 35 >= ball.y) computer.posY -= current_level.AISpeed;
+  if (computer.posY + 35 <= ball.bounds.position.y) computer.posY += current_level.AISpeed;
+  if (computer.posY + 35 >= ball.bounds.position.y) computer.posY -= current_level.AISpeed;
 }
 function draw_debug(ctx) {
   if (DEBUG.print_ai) {
@@ -486,9 +480,17 @@ function update() {
       console.log("really starting the level", level_select.levelOn)
       current_level = LEVELS[level_select.levelOn-1]
       CurrentEnemy.src = current_level.enemy_src
+      current_enemy_bounds.size.w = current_level.CurrentEnemyW
+      current_enemy_bounds.size.h = current_level.CurrentEnemyH
       level_select.set_visible(false)
     }
     level_select.draw(ctx, c);
+  }
+  if(ball.bounds.intersects(current_enemy_bounds)) {
+    console.log("hit the enemy with the ball")
+  }
+  if(player.bounds.intersects(current_enemy_bounds)) {
+    console.log("enemy hit the player paddle")
   }
   checkSettingsWindow(ctx);
 
@@ -518,7 +520,7 @@ function update() {
       draw_score(ctx);
       particles.draw_particles(ctx);
       draw_debug(ctx);
-      DrawCheckEnemy();
+      draw_enemy();
       DrawEnemyHeathBar();
       drawFireBall();
       ctx.restore();
