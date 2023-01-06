@@ -1,7 +1,6 @@
 const LevelSelectorWords = "Level Select"
 const RectWidthLine = 5
-const RectLeftOfset = 250
-
+const RectLeftOfset = 250 
 export class LevelSelector {
     constructor(levels) {
         this.levels = levels

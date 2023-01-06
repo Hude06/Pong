@@ -6,6 +6,7 @@ const DEBUG = {
   print_ai: false,
   sound:false,
   particles:true,
+  bounds:false,
 };
 
 let particles = new ParticleSource()
@@ -14,7 +15,7 @@ let player = {
   score: 0,
   // posX: 100,
   // posY: 165,
-  bounds: new Bounds(new Point(100,165), new Size(14,70))
+  bounds: new Bounds(new Point(100,165), new Size(28,140))
 };
 let paddle = {
   w: 14,
@@ -68,8 +69,8 @@ let RightPressed = false;
 let skinOn = 1;
 let checkHealthBarVisable = true;
 let current_enemy_bounds = new Bounds(new Point(500,325), new Size(10,10))
-let EnemySpeed = 0.5;
-let EnemyHealth = 10;
+let EnemySpeed = 1;
+let EnemyHealth = 5;
 let SoundedPlayed = false;
 RedBeltSkin.src = "/RedBelt.png";
 PlainSkin.src = "/PlainSkin.png";
@@ -120,7 +121,6 @@ function DrawEnemyHeathBar() {
 }
 function CheckEnemyHealth() {
   if (checkHealthBarVisable === true) {
-    EnemyHealth -= 0.01;
     if (EnemyHealth <= 0) {
       EnemyHealth = 0;
     }
@@ -137,7 +137,7 @@ function draw_enemy() {
     );
     if (player.bounds.position.y + player.bounds.size.w <= current_enemy_bounds.position.y) current_enemy_bounds.position.y -= EnemySpeed;
     if (player.bounds.position.y + 35 >= current_enemy_bounds.position.y) current_enemy_bounds.position.y += EnemySpeed;
-    if (player.bounds.position.y + 20 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= EnemySpeed;
+    if (player.bounds.position.y + 35 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= EnemySpeed;
   }
 }
 function draw_settings_window() {
@@ -227,8 +227,8 @@ function checkSettingsWindow() {
   }
 }
 function reset_ball() {
-  player.posX = 100;
-  player.posY = 165;
+  player.bounds.position.x = 100;
+  player.bounds.position.y = 165;
   computer.posX = 900;
   computer.posY = 265;
   screenShaking = false;
@@ -283,7 +283,7 @@ function draw_paddles_and_ball(ctx) {
     );
   }
   ctx.fillStyle = "#ff6973";
-  ctx.fillRect(ball.bounds.position.x, ball.bounds.position.y, ball.bounds.size.width, ball.bounds.size.height);
+  ctx.fillRect(ball.bounds.position.x, ball.bounds.position.y, ball.bounds.size.w, ball.bounds.size.h);
 }
 function draw_net(ctx) {
   for (let i = 0; i < c.height; i += 20) {
@@ -320,14 +320,14 @@ function checkScore() {
 }
 function checkSplash() {
   if (showing_splash === true) {
-    splashScreen.style.opacity = 0;
-    setTimeout(() => {
-      splashScreen.classList.add("hidden");
-      showing_splash = false
-      level_select.set_visible(true)
-    }, 500);
+    splashScreen.style.opacity = 100;
+    };
+  if (showing_splash === false) {
+    splashScreen.classList.add("hidden");
+    showing_splash = false
+    level_select.set_visible(true)
   }
-}
+  }
 
 function play_hit_paddle_sound() {
   if(DEBUG.sound) {
@@ -356,6 +356,7 @@ function check_wall_collisions() {
   }
   if (player.bounds.position.y <= 0) {
     player.bounds.position.y = 0;
+    
   }
   if (player.bounds.position.y >= 580) {
     player.bounds.position.y = 580;
@@ -382,7 +383,7 @@ function game_check_keyboard() {
     arrowDownPressed = false;
   }
   if (current_keys.get("Enter") === true) {
-    showing_splash = true;
+    showing_splash = false;
   }
   if (current_keys.get("w") || current_keys.get("ArrowUp")) {
     if (FlipedControlles === false) {
@@ -418,10 +419,10 @@ function check_paddle_collisons() {
   let new_ball_x = ball.bounds.position.x + ball.x_speed;
   //if ball hit player paddle
   //reverse direction
+  console.log(ball.bounds.intersects(player.bounds))
   if(ball.bounds.intersects(player.bounds)) {
-    ball.bounds.position.x = player.bounds.position.x + player.bounds.size.w;
+    console.log("Colided with paddle")
     ball.x_speed *= -1;
-    ball.bounds.position.x += ball.x_speed;
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
     ball.bounds.position.y += random_y_angle;
@@ -468,6 +469,19 @@ function clear_screen(ctx) {
   ctx.fillStyle = "#f1f2da";
   ctx.clearRect(0, 0, c.width, c.height);
 }
+function drawDebugBounds() {
+  if (DEBUG.bounds === true) {
+    ctx.strokeStyle = "red"
+    ctx.strokeRect(player.bounds.position.x,player.bounds.position.y,player.bounds.size.w,player.bounds.size.h)
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = "blue"
+    ctx.strokeRect(ball.bounds.position.x,ball.bounds.position.y,ball.bounds.size.w,ball.bounds.size.h)
+    ctx.strokeStyle = "yellow"
+    ctx.strokeRect(current_enemy_bounds.position.x,current_enemy_bounds.position.y,current_enemy_bounds.size.w,current_enemy_bounds.size.h)
+  
+  }
+}
+let hitEnemy = false;
 function update() {
   checkSplash(ctx);
   //check for user input
@@ -487,11 +501,16 @@ function update() {
     level_select.draw(ctx, c);
   }
   if(ball.bounds.intersects(current_enemy_bounds)) {
-    console.log("hit the enemy with the ball")
+    if (hitEnemy === false) {
+      console.log("hit the enemy with the ball")
+      EnemyHealth -= 1;
+      hitEnemy = true
+    }
   }
-  if(player.bounds.intersects(current_enemy_bounds)) {
-    console.log("enemy hit the player paddle")
+  if (ball.bounds.intersects(current_enemy_bounds) === false) {
+    hitEnemy = false;
   }
+
   checkSettingsWindow(ctx);
 
   if (paused) {
@@ -524,6 +543,7 @@ function update() {
       DrawEnemyHeathBar();
       drawFireBall();
       ctx.restore();
+      drawDebugBounds();
     }
   }
 
