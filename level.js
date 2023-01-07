@@ -5,5 +5,7 @@ export class Level {
         this.CurrentEnemyW = -1;
         this.CurrentEnemyH = -1;
         this.Enemy = true;
+        this.EnemySpeed = 0
+
     }
 }

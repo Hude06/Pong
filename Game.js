@@ -6,7 +6,7 @@ const DEBUG = {
   print_ai: false,
   sound:false,
   particles:true,
-  bounds:false,
+  bounds:true,
 };
 
 let particles = new ParticleSource()
@@ -69,8 +69,7 @@ let RightPressed = false;
 let skinOn = 1;
 let checkHealthBarVisable = true;
 let current_enemy_bounds = new Bounds(new Point(500,325), new Size(10,10))
-let EnemySpeed = 1;
-let EnemyHealth = 5;
+let EnemyHealth = 10;
 let SoundedPlayed = false;
 RedBeltSkin.src = "/RedBelt.png";
 PlainSkin.src = "/PlainSkin.png";
@@ -84,19 +83,23 @@ let FireBallPosy = 325//CurrentEnemyPosY;
 
 const LEVEL1 = new Level()
 LEVEL1.fireBallActive = false
-LEVEL1.AISpeed = 2
+LEVEL1.AISpeed = 2;
 LEVEL1.CurrentEnemyW = 16 * 5;
 LEVEL1.CurrentEnemyH = 16 * 5;
 LEVEL1.Enemy = true
 LEVEL1.enemy_src = "/Snail.png";
+LEVEL1.EnemySpeed = 0.5;
+
 
 const LEVEL2 = new Level()
 LEVEL2.fireBallActive = true
-LEVEL2.AISpeed = 4
+LEVEL2.AISpeed = 2;
 LEVEL2.CurrentEnemyW = 16 * 3;
 LEVEL2.CurrentEnemyH = 16 * 3;
 LEVEL2.Enemy = true
 LEVEL2.enemy_src = "/FireMan.png";
+LEVEL2.EnemySpeed = 1;
+
 
 const LEVELS = [LEVEL1, LEVEL2]
 
@@ -116,7 +119,7 @@ function DrawEnemyHeathBar() {
     ctx.strokeStyle = "red";
     ctx.strokeRect(500 - 100, 600, 200, 25);
     ctx.fillStyle = "black";
-    ctx.fillRect(500 - 98, 600 + 2, EnemyHealth * 20, 22);
+    ctx.fillRect(500 - 98, 600 + 2, EnemyHealth * 19.6, 22);
   }
 }
 function CheckEnemyHealth() {
@@ -135,9 +138,9 @@ function draw_enemy() {
       current_enemy_bounds.size.w,
       current_enemy_bounds.size.h
     );
-    if (player.bounds.position.y + player.bounds.size.w <= current_enemy_bounds.position.y) current_enemy_bounds.position.y -= EnemySpeed;
-    if (player.bounds.position.y + 35 >= current_enemy_bounds.position.y) current_enemy_bounds.position.y += EnemySpeed;
-    if (player.bounds.position.y + 35 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= EnemySpeed;
+    if (player.bounds.position.y + player.bounds.size.w <= current_enemy_bounds.position.y) current_enemy_bounds.position.y -= current_level.EnemySpeed;
+    if (player.bounds.position.y + 35 >= current_enemy_bounds.position.y) current_enemy_bounds.position.y += current_level.EnemySpeed;
+    if (player.bounds.position.y + 35 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= current_level.EnemySpeed;
   }
 }
 function draw_settings_window() {
@@ -211,14 +214,16 @@ function draw_settings_window() {
       if (skinOn === 4) {
         PlayerPaddleSkin.src = RedBelt;
       }
+      paused = false;
+      settingsWindowOpen = false
     }
   }
 }
 function checkSettingsWindow() {
   if (current_keys.get("x") === true) {
     if (settingRuned === false) {
-      paused = !paused;
-      settingsWindowOpen = !settingsWindowOpen;
+      paused = true;
+      settingsWindowOpen = true;
       settingRuned = true;
     }
   }
@@ -322,11 +327,12 @@ function checkSplash() {
   if (showing_splash === true) {
     splashScreen.style.opacity = 100;
     };
-  if (showing_splash === false) {
-    splashScreen.classList.add("hidden");
-    showing_splash = false
-    level_select.set_visible(true)
-  }
+    setTimeout(() => {
+      splashScreen.classList.add("hidden");
+      showing_splash = false
+      level_select.set_visible(true)
+      
+    }, 1000)
   }
 
 function play_hit_paddle_sound() {
@@ -382,9 +388,6 @@ function game_check_keyboard() {
   if (current_keys.get("ArrowLeft") === false) {
     arrowDownPressed = false;
   }
-  if (current_keys.get("Enter") === true) {
-    showing_splash = false;
-  }
   if (current_keys.get("w") || current_keys.get("ArrowUp")) {
     if (FlipedControlles === false) {
       player.bounds.position.y -= 5;
@@ -419,17 +422,17 @@ function check_paddle_collisons() {
   let new_ball_x = ball.bounds.position.x + ball.x_speed;
   //if ball hit player paddle
   //reverse direction
-  console.log(ball.bounds.intersects(player.bounds))
-  if(ball.bounds.intersects(player.bounds)) {
-    console.log("Colided with paddle")
-    ball.x_speed *= -1;
-    play_hit_paddle_sound()
-    random_y_angle = getRndInteger(-5, 5);
-    ball.bounds.position.y += random_y_angle;
-    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
-    start_screen_shake();
-    return;
-  }
+  // console.log(ball.bounds.intersects(player.bounds))
+  // if(ball.bounds.intersects(player.bounds)) {
+  //   console.log("Colided with paddle")
+  //   ball.x_speed *= -1;
+  //   play_hit_paddle_sound()
+  //   random_y_angle = getRndInteger(-5, 5);
+  //   ball.bounds.position.y += random_y_angle;
+  //   particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
+  //   start_screen_shake();
+  //   return;
+  // }
 
   //if ball hit computer paddle
   //reverse direction
@@ -488,7 +491,7 @@ function update() {
   game_check_keyboard(ctx);
 
   if(ball.alive === false) {
-    level_select.check_input(nav_keys)
+    level_select.check_input(nav_keys,showing_splash)
     if(level_select.finished) {
       ball.alive = true
       console.log("really starting the level", level_select.levelOn)
@@ -503,8 +506,13 @@ function update() {
   if(ball.bounds.intersects(current_enemy_bounds)) {
     if (hitEnemy === false) {
       console.log("hit the enemy with the ball")
-      EnemyHealth -= 1;
+      EnemyHealth -= 5;
+      screenShaking = true
       hitEnemy = true
+      setTimeout(() => {
+        screenShaking = false
+      }, 200)
+      
     }
   }
   if (ball.bounds.intersects(current_enemy_bounds) === false) {
