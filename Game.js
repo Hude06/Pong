@@ -14,7 +14,7 @@ const DEBUG = {
   sound:false,
   particles:true,
   bounds:true,
-  print_ball:false,
+  print_ball:true,
 };
 
 let particles = new ParticleSource()
@@ -96,7 +96,7 @@ LEVEL1.CurrentEnemyW = 16 * 5;
 LEVEL1.CurrentEnemyH = 16 * 5;
 LEVEL1.Enemy = true
 LEVEL1.enemy_src = "/Snail.png";
-LEVEL1.EnemySpeed = 0.5;
+LEVEL1.EnemySpeed = 1;
 
 
 const LEVEL2 = new Level()
@@ -107,8 +107,6 @@ LEVEL2.CurrentEnemyH = 16 * 3;
 LEVEL2.Enemy = true
 LEVEL2.enemy_src = "/FireMan.png";
 LEVEL2.EnemySpeed = 1;
-
-
 const LEVELS = [LEVEL1, LEVEL2]
 
 let level_select = new LevelSelector(LEVELS)
@@ -134,6 +132,7 @@ function CheckEnemyHealth() {
   if (checkHealthBarVisable === true) {
     if (EnemyHealth <= 0) {
       EnemyHealth = 0;
+      current_level.Enemy = false
     }
   }
 }
@@ -146,9 +145,18 @@ function draw_enemy() {
       current_enemy_bounds.size.w,
       current_enemy_bounds.size.h
     );
-    if (player.bounds.position.y + player.bounds.size.w <= current_enemy_bounds.position.y) current_enemy_bounds.position.y -= current_level.EnemySpeed;
-    if (player.bounds.position.y + 35 >= current_enemy_bounds.position.y) current_enemy_bounds.position.y += current_level.EnemySpeed;
-    if (player.bounds.position.y + 35 <= current_enemy_bounds.position.x) current_enemy_bounds.position.x -= current_level.EnemySpeed;
+    if (player.bounds.position.y-30 + player.bounds.size.w <= current_enemy_bounds.position.y) {
+      current_enemy_bounds.position.y -= current_level.EnemySpeed;
+    }
+    if (player.bounds.position.y-30 >= current_enemy_bounds.position.y) {
+      current_enemy_bounds.position.y += current_level.EnemySpeed;
+    }
+    if (player.bounds.position.y-30 <= current_enemy_bounds.position.x) {
+      current_enemy_bounds.position.x -= current_level.EnemySpeed;
+    }
+    if (player.bounds.position.y-30 >= current_enemy_bounds.position.x) {
+      current_enemy_bounds.position.x += current_level.EnemySpeed;
+    }
   }
 }
 function draw_settings_window() {
@@ -239,14 +247,25 @@ function checkSettingsWindow() {
     settingRuned = false;
   }
 }
+function EnemyEatPaddle() {
+  if(current_enemy_bounds.intersects(player.bounds) || player.bounds.intersects(current_enemy_bounds)) {
+    console.log("Paddle Being Eaten")
+    player.bounds.size.h -= 0.5
+    if (player.bounds.size.h <= 0) {
+      console.log("PlayerDied")
+      player.bounds.size.h = 0;
+    }
+  
+  }
+}
 function reset_ball() {
+  ball.alive = true;
   player.bounds.position.x = 100;
   player.bounds.position.y = 165;
   computer.posX = 900;
   computer.posY = 265;
   screenShaking = false;
   ball.bounds.position = new Point(400,200)
-  // random_y_angle = 0
   random_y_angle = getRndInteger(-5, 5);
   ball.bounds.position.y += random_y_angle;
 }
@@ -321,6 +340,7 @@ function checkScore() {
     play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
+    console.log("Reseting")
     reset_ball();
     computer.score += 1;
   }
@@ -328,6 +348,7 @@ function checkScore() {
     play_hit_wall_sound()
     ball.x_speed *= -1;
     ball.alive = false;
+    console.log("Reseting")
     reset_ball();
     player.score += 1;
   }
@@ -531,19 +552,24 @@ function update() {
     }
     level_select.draw(ctx, c);
   }
-  if(ball.bounds.intersects(current_enemy_bounds)) {
+  if(ball.bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(ball.bounds)) {
     if (hitEnemy === false) {
       console.log("hit the enemy with the ball")
-      EnemyHealth -= 5;
-      screenShaking = true
+      if (current_level.Enemy === true) {
+        screenShaking = true
+      }
       hitEnemy = true
       setTimeout(() => {
-        screenShaking = false
+          screenShaking = false
+        
       }, 200)
+      setTimeout(() => {
+        EnemyHealth -= 5;
+      }, 1000)
 
     }
   }
-  if (ball.bounds.intersects(current_enemy_bounds) === false) {
+  if(ball.bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(ball.bounds) === false) {
     hitEnemy = false;
   }
 
@@ -580,6 +606,7 @@ function update() {
       drawFireBall();
       ctx.restore();
       drawDebugBounds();
+      EnemyEatPaddle();
     }
   }
 
