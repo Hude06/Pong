@@ -2,11 +2,19 @@ import {ParticleSource} from "./particles.js";
 import {LevelSelector} from "./Levelselect.js"
 import {Level} from './level.js'
 import {Bounds, Point, Size} from "./node_modules/josh_js_util/dist/index.js"
+
+Bounds.prototype.translate = function(pt) {
+  return new Bounds(
+      this.position.add(pt),
+      this.size
+  )
+}
 const DEBUG = {
   print_ai: false,
   sound:false,
   particles:true,
   bounds:true,
+  print_ball:false,
 };
 
 let particles = new ParticleSource()
@@ -238,6 +246,7 @@ function reset_ball() {
   computer.posY = 265;
   screenShaking = false;
   ball.bounds.position = new Point(400,200)
+  // random_y_angle = 0
   random_y_angle = getRndInteger(-5, 5);
   ball.bounds.position.y += random_y_angle;
 }
@@ -323,17 +332,19 @@ function checkScore() {
     player.score += 1;
   }
 }
-function checkSplash() {
+
+function start_splash() {
   if (showing_splash === true) {
-    splashScreen.style.opacity = 100;
-    };
-    setTimeout(() => {
-      splashScreen.classList.add("hidden");
-      showing_splash = false
-      level_select.set_visible(true)
-      
-    }, 1000)
+    splashScreen.style.opacity = 100
+  } else {
+    splashScreen.style.opacity = 0
   }
+  setTimeout(() => {
+    splashScreen.classList.add("hidden");
+    showing_splash = false
+    level_select.set_visible(true)
+  }, 1000)
+}
 
 function play_hit_paddle_sound() {
   if(DEBUG.sound) {
@@ -362,7 +373,7 @@ function check_wall_collisions() {
   }
   if (player.bounds.position.y <= 0) {
     player.bounds.position.y = 0;
-    
+
   }
   if (player.bounds.position.y >= 580) {
     player.bounds.position.y = 580;
@@ -420,19 +431,22 @@ function start_screen_shake() {
 function check_paddle_collisons() {
   // move the ball
   let new_ball_x = ball.bounds.position.x + ball.x_speed;
+
   //if ball hit player paddle
   //reverse direction
-  // console.log(ball.bounds.intersects(player.bounds))
-  // if(ball.bounds.intersects(player.bounds)) {
-  //   console.log("Colided with paddle")
-  //   ball.x_speed *= -1;
-  //   play_hit_paddle_sound()
-  //   random_y_angle = getRndInteger(-5, 5);
-  //   ball.bounds.position.y += random_y_angle;
-  //   particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
-  //   start_screen_shake();
-  //   return;
-  // }
+  let new_ball_bounds = ball.bounds.translate(new Point(ball.x_speed,random_y_angle))
+  if(new_ball_bounds.intersects(player.bounds) || player.bounds.intersects(new_ball_bounds)) {
+    //flip speed
+    ball.x_speed *= -1;
+    play_hit_paddle_sound()
+    //new random y angle
+    random_y_angle = getRndInteger(-5, 5);
+    //calc new ball position
+    ball.bounds = ball.bounds.translate(new Point(ball.x_speed,random_y_angle))
+    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
+    start_screen_shake();
+    return;
+  }
 
   //if ball hit computer paddle
   //reverse direction
@@ -466,6 +480,21 @@ function draw_debug(ctx) {
     ctx.fillText("ai speed = " + current_level.AISpeed, 100, 100);
     ctx.fillText("ball speed = " + ball.x_speed, 100, 130);
   }
+  if(DEBUG.print_ball) {
+    ctx.fillStyle = "black";
+    ctx.font = "24px sans-serif";
+    ctx.fillText(`ball xy = ${ball.bounds.position.x} ${ball.bounds.position.y}`,
+        100, 130);
+    ctx.fillText(`player xy = ${player.bounds.position.x} ${player.bounds.position.y}`,
+        100, 150);
+    ctx.fillText(`player wh = ${player.bounds.size.w} ${player.bounds.size.h}`,
+        100, 170);
+    let p1 = player.bounds.position
+    //if b.p1 inside of a
+    //if
+    ctx.fillText(`p1  ${p1.x} ${p1.y} ${ball.bounds.contains(p1)}`,
+        100, 390);
+  }
 }
 function clear_screen(ctx) {
   // clear screen
@@ -481,16 +510,15 @@ function drawDebugBounds() {
     ctx.strokeRect(ball.bounds.position.x,ball.bounds.position.y,ball.bounds.size.w,ball.bounds.size.h)
     ctx.strokeStyle = "yellow"
     ctx.strokeRect(current_enemy_bounds.position.x,current_enemy_bounds.position.y,current_enemy_bounds.size.w,current_enemy_bounds.size.h)
-  
+
   }
 }
 let hitEnemy = false;
 function update() {
-  checkSplash(ctx);
   //check for user input
   game_check_keyboard(ctx);
 
-  if(ball.alive === false) {
+  if(level_select.visible) {
     level_select.check_input(nav_keys,showing_splash)
     if(level_select.finished) {
       ball.alive = true
@@ -512,7 +540,7 @@ function update() {
       setTimeout(() => {
         screenShaking = false
       }, 200)
-      
+
     }
   }
   if (ball.bounds.intersects(current_enemy_bounds) === false) {
@@ -559,10 +587,21 @@ function update() {
   window.requestAnimationFrame(update);
 }
 function start() {
-  if (ball.alive === true) {
-    draw_score(ctx);
-  }
+  showing_splash = true
+  start_splash(ctx);
+  // splashScreen.style.opacity = 0
+  // level_select.set_visible(false)
   setup_keyboard();
+
+
+  // ball.alive = true
+  // current_level = LEVEL1
+  // CurrentEnemy.src = current_level.enemy_src
+  // current_enemy_bounds.size.w = current_level.CurrentEnemyW
+  // current_enemy_bounds.size.h = current_level.CurrentEnemyH
+  // reset_ball()
+  // ball.x_speed = -1
+
   update();
 }
 start();
