@@ -14,7 +14,7 @@ const DEBUG = {
   sound:false,
   particles:true,
   bounds:true,
-  print_ball:true,
+  print_ball:false,
 };
 
 let particles = new ParticleSource()
@@ -35,11 +35,6 @@ let computer = {
   score: 0,
 };
 
-let ball = {
-  bounds : new Bounds(new Point(400, 200), new Size(10, 10)),
-  x_speed: 5,
-  alive: false,
-}
 
 const c = document.getElementById("Game");
 const ctx = c.getContext("2d");
@@ -98,7 +93,6 @@ LEVEL1.Enemy = true
 LEVEL1.enemy_src = "/Snail.png";
 LEVEL1.EnemySpeed = 1;
 
-
 const LEVEL2 = new Level()
 LEVEL2.fireBallActive = true
 LEVEL2.AISpeed = 2;
@@ -108,10 +102,17 @@ LEVEL2.Enemy = true
 LEVEL2.enemy_src = "/FireMan.png";
 LEVEL2.EnemySpeed = 1;
 const LEVELS = [LEVEL1, LEVEL2]
-
+let mode = "splash"
 let level_select = new LevelSelector(LEVELS)
 let current_level = null
-
+class Ball {
+  constructor() {
+      this.bounds = new Bounds(new Point(400, 200), new Size(10, 10))
+      this.x_speed = 5
+      this.alive = true
+  }
+}
+let balls = []
 random_y_angle = getRndInteger(-5, 5);
 function drawFireBall() {
   if (current_level.fireBallActive) {
@@ -259,15 +260,19 @@ function EnemyEatPaddle() {
   }
 }
 function reset_ball() {
-  ball.alive = true;
+  balls = []
+  balls.push(new Ball);
+  random_y_angle = getRndInteger(-5, 5);
+  for (let i = 0; i < balls.length; i++) {
+    balls[i].alive = true;
+    balls[i].bounds.position = new Point(400,200)
+    balls[i].bounds.position.y += random_y_angle;
+  }
   player.bounds.position.x = 100;
   player.bounds.position.y = 165;
   computer.posX = 900;
   computer.posY = 265;
   screenShaking = false;
-  ball.bounds.position = new Point(400,200)
-  random_y_angle = getRndInteger(-5, 5);
-  ball.bounds.position.y += random_y_angle;
 }
 function setup_keyboard() {
   window.addEventListener("keydown", function (event) {
@@ -301,22 +306,25 @@ function draw_paddles_and_ball(ctx) {
       player.bounds.size.h,
 );
   ctx.drawImage(PaddelSkinAI, computer.posX, computer.posY, 14 * 2, 70 * 2);
-
-  for (let t = 0; t < 5; t++) {
-    let per = t / 5;
-    let r = Math.floor(per * 255);
-    let g = Math.floor(per * 176) + 5;
-    let b = Math.floor(per * 163);
-    ctx.fillStyle = `rgba(${r},${g},${b},${100 - per * 100}%)`;
-    ctx.fillRect(
-      ball.bounds.position.x + ball.x_speed * -t,
-      ball.bounds.position.y + random_y_angle * -t,
-      ball.bounds.size.w + t,
-      ball.bounds.size.h + t
-    );
-  }
   ctx.fillStyle = "#ff6973";
-  ctx.fillRect(ball.bounds.position.x, ball.bounds.position.y, ball.bounds.size.w, ball.bounds.size.h);
+  for (let i = 0; i < balls.length; i++) {
+    // for (let t = 0; t < 5; t++) {
+    //   let per = t / 5;
+    //   let r = Math.floor(per * 255);
+    //   let g = Math.floor(per * 176) + 5;
+    //   let b = Math.floor(per * 163);
+    //   ctx.fillStyle = `rgba(${r},${g},${b},${100 - per * 100}%)`;
+      // ctx.fillRect(
+      //   balls[i].bounds.position.x + balls[i].x_speed * -t,
+      //   balls[i].bounds.position.y + random_y_angle * -t,
+      //   balls[i].bounds.size.w + t,
+      //   balls[i].bounds.size.h + t
+      // );
+    // }
+    balls[i].bounds.position.y += random_y_angle
+    ctx.fillRect(balls[i].bounds.position.x, balls[i].bounds.position.y, balls[i].bounds.size.w, balls[i].bounds.size.h);
+  }
+
 }
 function draw_net(ctx) {
   for (let i = 0; i < c.height; i += 20) {
@@ -336,21 +344,23 @@ function play_hit_wall_sound() {
 }
 
 function checkScore() {
-  if (ball.bounds.position.x <= 0) {
-    play_hit_wall_sound()
-    ball.x_speed *= -1;
-    ball.alive = false;
-    console.log("Reseting")
-    reset_ball();
-    computer.score += 1;
-  }
-  if (ball.bounds.position.x >= 950) {
-    play_hit_wall_sound()
-    ball.x_speed *= -1;
-    ball.alive = false;
-    console.log("Reseting")
-    reset_ball();
-    player.score += 1;
+  for (let i = 0; i < balls.length; i++) {
+    if (balls[i].bounds.position.x <= 0) {
+      play_hit_wall_sound()
+      balls[i].x_speed *= -1;
+      balls[i].alive = false;
+      console.log("Reseting")
+      reset_ball();
+      computer.score += 1;
+    }
+    if (balls[i].bounds.position.x >= 950) {
+      play_hit_wall_sound()
+      balls[i].x_speed *= -1;
+      balls[i].alive = false;
+      console.log("Reseting")
+      reset_ball();
+      player.score += 1;
+    }
   }
 }
 
@@ -364,6 +374,8 @@ function start_splash() {
     splashScreen.classList.add("hidden");
     showing_splash = false
     level_select.set_visible(true)
+    mode = "levelSelect"
+
   }, 1000)
 }
 
@@ -375,22 +387,24 @@ function play_hit_paddle_sound() {
 
 function check_wall_collisions() {
   // check top wall
-  if (ball.bounds.position.y <= 20) {
-    ball.bounds.position.y = 20;
-    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
-    random_y_angle = getRndInteger(1, 5);
-    ball.bounds.position.y += random_y_angle;
-    play_hit_wall_sound()
-    start_screen_shake();
-  }
-  // check bottom wall
-  if (ball.bounds.position.y >= 630) {
-    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
-    ball.bounds.position.y = 600;
-    random_y_angle = getRndInteger(-5, -1);
-    ball.bounds.position.y += random_y_angle;
-    play_hit_wall_sound()
-    start_screen_shake();
+  for (let i = 0; i < balls.length; i++) {
+    if (balls[i].bounds.position.y <= 20) {
+      balls[i].bounds.position.y = 20;
+      particles.start_particles(balls[i].bounds.position.x, balls[i].bounds.position.y);
+      random_y_angle = getRndInteger(1, 5);
+      balls[i].bounds.position.y += random_y_angle;
+      play_hit_wall_sound()
+      start_screen_shake();
+    }
+    // check bottom wall
+    if (balls[i].bounds.position.y >= 630) {
+      particles.start_particles(balls[i].bounds.position.x, balls[i].bounds.position.y);
+      balls[i].bounds.position.y = 600;
+      random_y_angle = getRndInteger(-5, -1);
+      balls[i].bounds.position.y += random_y_angle;
+      play_hit_wall_sound()
+      start_screen_shake();
+    }
   }
   if (player.bounds.position.y <= 0) {
     player.bounds.position.y = 0;
@@ -451,48 +465,47 @@ function start_screen_shake() {
 }
 function check_paddle_collisons() {
   // move the ball
-  let new_ball_x = ball.bounds.position.x + ball.x_speed;
-
+  for (let i = 0; i < balls.length; i++) {
+    let new_ball_x = balls[i].bounds.position.x += balls[i].x_speed;
+    let new_ball_bounds = balls[i].bounds.translate(new Point(balls[i].x_speed,random_y_angle))
   //if ball hit player paddle
   //reverse direction
-  let new_ball_bounds = ball.bounds.translate(new Point(ball.x_speed,random_y_angle))
   if(new_ball_bounds.intersects(player.bounds) || player.bounds.intersects(new_ball_bounds)) {
     //flip speed
-    ball.x_speed *= -1;
+    balls[i].x_speed *= -1;
     play_hit_paddle_sound()
     //new random y angle
     random_y_angle = getRndInteger(-5, 5);
     //calc new ball position
-    ball.bounds = ball.bounds.translate(new Point(ball.x_speed,random_y_angle))
-    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
+    balls[i].bounds = balls[i].bounds.translate(new Point(balls[i].x_speed,random_y_angle))
+    particles.start_particles(balls[i].bounds.position.x, balls[i].bounds.position.y);
     start_screen_shake();
-    return;
+    balls[i].bounds.position.x = new_ball_x;
+    balls[i].bounds.position.y = balls[i].bounds.position.y + random_y_angle;
   }
-
-  //if ball hit computer paddle
-  //reverse direction
   if (
     new_ball_x >= 880 &&
-    ball.bounds.position.y >= computer.posY &&
-    ball.bounds.position.y <= computer.posY + paddle.h * 2
+    balls[i].bounds.position.y >= computer.posY &&
+    balls[i].bounds.position.y <= computer.posY + paddle.h * 2
   ) {
-    ball.bounds.position.x = 880;
-    ball.x_speed *= -1;
-    ball.bounds.position.x += ball.x_speed;
+    balls[i].bounds.position.x = 880;
+    balls[i].x_speed *= -1;
     play_hit_paddle_sound()
     random_y_angle = getRndInteger(-5, 5);
-    ball.bounds.position.y += random_y_angle;
-    particles.start_particles(ball.bounds.position.x, ball.bounds.position.y);
+    console.log(random_y_angle)
+    balls[i].bounds.position.y = balls[i].bounds.position.y + random_y_angle;
+    particles.start_particles(balls[i].bounds.position.x, balls[i].bounds.position.y);
     start_screen_shake();
-    return;
   }
+  // balls[i].bounds.position.x += balls[i].x_speed;
 
-  ball.bounds.position.x = new_ball_x;
-  ball.bounds.position.y = ball.bounds.position.y + random_y_angle;
+}
 }
 function update_computer_paddle() {
-  if (computer.posY + 35 <= ball.bounds.position.y) computer.posY += current_level.AISpeed;
-  if (computer.posY + 35 >= ball.bounds.position.y) computer.posY -= current_level.AISpeed;
+  for (let i = 0; i < balls.length; i++) {
+    if (computer.posY + 35 <= balls[i].bounds.position.y) computer.posY += current_level.AISpeed;
+    if (computer.posY + 35 >= balls[i].bounds.position.y) computer.posY -= current_level.AISpeed;
+  }
 }
 function draw_debug(ctx) {
   if (DEBUG.print_ai) {
@@ -523,77 +536,93 @@ function clear_screen(ctx) {
   ctx.clearRect(0, 0, c.width, c.height);
 }
 function drawDebugBounds() {
+  for (let i = 0; i < balls.length; i++) {
   if (DEBUG.bounds === true) {
     ctx.strokeStyle = "red"
     ctx.strokeRect(player.bounds.position.x,player.bounds.position.y,player.bounds.size.w,player.bounds.size.h)
     ctx.lineWidth = 4;
     ctx.strokeStyle = "blue"
-    ctx.strokeRect(ball.bounds.position.x,ball.bounds.position.y,ball.bounds.size.w,ball.bounds.size.h)
+    ctx.strokeRect(balls[i].bounds.position.x,balls[i].bounds.position.y,balls[i].bounds.size.w,balls[i].bounds.size.h)
     ctx.strokeStyle = "yellow"
     ctx.strokeRect(current_enemy_bounds.position.x,current_enemy_bounds.position.y,current_enemy_bounds.size.w,current_enemy_bounds.size.h)
 
   }
 }
+}
 let hitEnemy = false;
 function update() {
-  //check for user input
   game_check_keyboard(ctx);
-
-  if(level_select.visible) {
-    level_select.check_input(nav_keys,showing_splash)
-    if(level_select.finished) {
-      ball.alive = true
-      console.log("really starting the level", level_select.levelOn)
-      current_level = LEVELS[level_select.levelOn-1]
-      CurrentEnemy.src = current_level.enemy_src
-      current_enemy_bounds.size.w = current_level.CurrentEnemyW
-      current_enemy_bounds.size.h = current_level.CurrentEnemyH
-      level_select.set_visible(false)
-    }
-    level_select.draw(ctx, c);
-  }
-  if(ball.bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(ball.bounds)) {
-    if (hitEnemy === false) {
-      console.log("hit the enemy with the ball")
-      if (current_level.Enemy === true) {
-        screenShaking = true
+  if (mode === "levelSelect") {
+      if(level_select.visible) {
+        level_select.check_input(nav_keys,showing_splash)
+        if(level_select.finished) {
+          mode = "play"
+          balls.push(new Ball)
+          let ball2 = new Ball();
+          ball2.x_speed = 1
+          balls.push(ball2)
+          console.log("really starting the level", level_select.levelOn)
+          current_level = LEVELS[level_select.levelOn-1]
+          CurrentEnemy.src = current_level.enemy_src
+          current_enemy_bounds.size.w = current_level.CurrentEnemyW
+          current_enemy_bounds.size.h = current_level.CurrentEnemyH
+          level_select.set_visible(false)
+        }
+        level_select.draw(ctx, c);
       }
-      hitEnemy = true
-      setTimeout(() => {
-          screenShaking = false
-        
-      }, 200)
-      setTimeout(() => {
-        EnemyHealth -= 5;
-      }, 1000)
-
+  }
+  for (let i = 0; i < balls.length; i++) {
+    if(balls[i].bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(balls[i].bounds)) {
+      if (hitEnemy === false) {
+        console.log("hit the enemy with the ball")
+        if (current_level.Enemy === true) {
+          screenShaking = true
+        }
+        hitEnemy = true
+        setTimeout(() => {
+            screenShaking = false
+          
+        }, 200)
+        setTimeout(() => {
+          EnemyHealth -= 5;
+        }, 1000)
+  
+      }
+    }
+    if(balls[i].bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(balls[i].bounds) === false) {
+      hitEnemy = false;
     }
   }
-  if(ball.bounds.intersects(current_enemy_bounds) || current_enemy_bounds.intersects(ball.bounds) === false) {
-    hitEnemy = false;
-  }
+  
+  // let alive = false
+  // for (let i = 0; i < balls.length; i++) {
+  //   if (balls[i].alive === true) {
+  //     alive = true
+  //     console.log("ALive")
+  //   }
+  // }
 
   checkSettingsWindow(ctx);
-
   if (paused) {
-    clear_screen(ctx);
-    draw_settings_window();
+      clear_screen(ctx);
+      draw_settings_window();
   } else {
-    if (ball.alive === true) {
       // move the computer
-      update_computer_paddle(ctx);
-      //check for wall collisions
-      check_wall_collisions(ctx);
-      //check for paddle collisions
-      check_paddle_collisons(ctx);
-      checkScore(ctx);
-      particles.update_particles(ctx);
-      Flip_Controlls(ctx);
-      CheckEnemyHealth();
-      ctx.save();
-      if (screenShaking === true) {
-        ctx.translate(Math.random() * 30, 0);
-      }
+      if (mode === "play") {
+        update_computer_paddle(ctx);
+        //check for wall collisions
+        check_wall_collisions(ctx);
+        //check for paddle collisions
+        check_paddle_collisons(ctx);
+        checkScore(ctx);
+        particles.update_particles(ctx);
+        Flip_Controlls(ctx);
+        CheckEnemyHealth();
+        ctx.save();
+        if (screenShaking === true) {
+          ctx.translate(Math.random() * 30, 0);
+        }
+      
       // draw
       clear_screen(ctx);
       draw_paddles_and_ball(ctx);
@@ -607,7 +636,8 @@ function update() {
       ctx.restore();
       drawDebugBounds();
       EnemyEatPaddle();
-    }
+      }
+      
   }
 
   nav_keys.clear()
@@ -615,7 +645,9 @@ function update() {
 }
 function start() {
   showing_splash = true
-  start_splash(ctx);
+  if (mode === "splash") {
+    start_splash(ctx);
+  }
   // splashScreen.style.opacity = 0
   // level_select.set_visible(false)
   setup_keyboard();
