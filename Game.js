@@ -373,8 +373,9 @@ function start_splash() {
   setTimeout(() => {
     splashScreen.classList.add("hidden");
     showing_splash = false
-    level_select.set_visible(true)
-    mode = "levelSelect"
+    // level_select.set_visible(true)
+    // mode = "levelSelect"
+    mode = "startScreen"
 
   }, 1000)
 }
@@ -549,6 +550,61 @@ function drawDebugBounds() {
   }
 }
 }
+let loadSelected = false
+let startSelected = false
+function drawStartScreen() {
+  if (mode = "startScreen") {
+    console.log("Loading Startscreen")
+    ctx.fillStyle = "gray"
+    ctx.fillRect(0,0,c.width,c.height)
+    ctx.fillStyle = "white"
+    ctx.font = "100px serif";
+    ctx.fillText("PONG", c.width/2-120, 90);
+    ctx.fillStyle = "black"
+    ctx.fillRect(c.width/2-90,200,180,50)
+    ctx.fillRect(c.width/2-90,300,180,50)
+    ctx.fillStyle = "white"
+    ctx.font = "50px serif";
+    ctx.fillText("Start",c.width/2-50,240);
+    ctx.fillText("Load",c.width/2-50,340)
+
+
+
+    if (mode === "startScreen") {
+      if (current_keys.get("ArrowDown") === true) {
+        startSelected = false
+        loadSelected = true;
+      }
+      if (current_keys.get("ArrowUp") === true) {
+        loadSelected = false;
+        startSelected = true;
+      }
+      if (current_keys.get("Enter") === true) {
+        if (startSelected === true) {
+            level_select.set_visible(true)
+            mode = "levelSelect"
+
+          }
+        if (loadSelected === true) {
+        }
+      }
+    }
+    if (loadSelected === true) {
+      console.log("Down")
+      ctx.strokeStyle = "red"
+      ctx.lineWidth = 3;
+      ctx.strokeRect(c.width/2-90,300,180,50)
+    }
+    if (startSelected === true) {
+      console.log("Up")
+      ctx.strokeStyle = "red"
+      ctx.lineWidth = 3;
+      console.log("Start")
+      ctx.strokeRect(c.width/2-90,200,180,50)
+    }
+  
+  }
+}
 let hitEnemy = false;
 function update() {
   game_check_keyboard(ctx);
@@ -558,9 +614,9 @@ function update() {
         if(level_select.finished) {
           mode = "play"
           balls.push(new Ball)
-          let ball2 = new Ball();
-          ball2.x_speed = 1
-          balls.push(ball2)
+          // let ball2 = new Ball();
+          // ball2.x_speed = 1
+          // balls.push(ball2)
           console.log("really starting the level", level_select.levelOn)
           current_level = LEVELS[level_select.levelOn-1]
           CurrentEnemy.src = current_level.enemy_src
@@ -608,6 +664,7 @@ function update() {
       draw_settings_window();
   } else {
       // move the computer
+      drawStartScreen();
       if (mode === "play") {
         update_computer_paddle(ctx);
         //check for wall collisions
