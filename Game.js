@@ -9,9 +9,9 @@ Bounds.prototype.translate = function (pt) {
 };
 const DEBUG = {
   print_ai: false,
-  sound: false,
+  sound: true,
   particles: true,
-  bounds: true,
+  bounds: false,
   print_ball: false,
 };
 
@@ -40,13 +40,14 @@ let assets = {
   RedBeltSkin: new Image(),
   fireball: new Image(),
   soundEFX1: new Audio("/explosion.wav"),
-  soundEFX: new Audio("/click.wav"),
+  soundEFX2: new Audio("/click.wav"),
   soundEFX3: new Audio("/ControllsFliped.wav"),
   TopHat: "/TopHatSkin.png",
   ChristmasHat: "/ChristMasSkin.png",
   Plain: "/PlainSkin.png",
   RedBelt: "/RedBelt.png",
 };
+let PaddleMovment = null
 let keyboard = {
   LeftPressed: false,
   RightPressed: false,
@@ -101,6 +102,7 @@ LEVEL2.CurrentEnemyH = 16 * 3;
 LEVEL2.Enemy = true;
 LEVEL2.enemy_src = "/FireMan.png";
 LEVEL2.EnemySpeed = 1;
+let randomeY = getRndInteger(-5, 5);
 const LEVELS = [LEVEL1, LEVEL2];
 let mode = "splash";
 let level_select = new LevelSelector(LEVELS);
@@ -109,7 +111,6 @@ let balls = [];
 let BallsAddredRunned = false;
 class Ball {
   constructor() {
-    this.randomeY = getRndInteger(-5, 5);
     this.bounds = new Bounds(new Point(400, 200), new Size(10, 10));
     this.x_speed = 5;
     this.alive = true;
@@ -126,7 +127,28 @@ function addBallsToArray() {
 function drawFireBall() {
   if (current_level.fireBallActive) {
     FireBallPosx -= 1;
-    ctx.drawImage(fireball, FireBallPosx, FireBallPosy, 16 * 3, 16 * 3);
+    ctx.drawImage(assets.fireball, FireBallPosx, FireBallPosy, 16 * 3, 16 * 3);
+  }
+}
+let SettingsMenuVisable = false;
+let settings = {
+  music: false,
+  soundsEffects: DEBUG.sound,
+  particles: DEBUG.particles,
+};
+function CheckSettingsMenu() {
+  if (mode === "settings") {
+    SettingsMenuVisable = true  
+  }
+  if (SettingsMenuVisable === true) {
+    ctx.fillRect(0,0,c.width,c.height);
+    ctx.fillStyle = "red"
+    ctx.fillRect(100,50,100,50)
+    ctx.font = "40px serif";
+    ctx.fillStyle = "black";
+    ctx.fillText("Music Playing " + settings.music, 250, 100);  
+    ctx.fillText("Sounds Effects " + settings.soundsEffects, 250, 200);  
+    ctx.fillText("Partical Effects " + settings.particles, 250, 300);  
   }
 }
 function DrawEnemyHeathBar() {
@@ -172,7 +194,7 @@ function draw_enemy() {
     }
   }
 }
-function draw_settings_window() {
+function draw_SkinSelector() {
   if (SkinSelectorOpen === true) {
     ctx.imageSmoothingEnabled = true;
     ctx.fillStyle = "red";
@@ -197,8 +219,8 @@ function draw_settings_window() {
     if (current_keys.get("ArrowRight") === true) {
       if (keyboard.RightPressed === false) {
         skinOn += 1;
-        RightPressed = true;
-        LeftPressed = false;
+        keyboard.RightPressed = true;
+        keyboard.LeftPressed = false;
       }
     }
     if (current_keys.get("ArrowRight") === false) {
@@ -224,23 +246,23 @@ function draw_settings_window() {
       ctx.strokeStyle = "black";
       ctx.strokeRect(145 + 150 * skinOn - 150, 70, 110, 110);
     }
-    ctx.drawImage(PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(ChristmasHatSkin, 350 + 140, 80, 14 * 1.2, 70 * 1.2);
-    ctx.drawImage(RedBeltSkin, 350 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(assets.PlainSkin, 190, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(assets.TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(assets.ChristmasHatSkin, 350 + 140, 80, 14 * 1.2, 70 * 1.2);
+    ctx.drawImage(assets.RedBeltSkin, 350 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
 
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
-        PlayerPaddleSkin.src = Plain;
+        assets.PlayerPaddleSkin.src = assets.Plain;
       }
       if (skinOn === 2) {
-        PlayerPaddleSkin.src = TopHat;
+        assets.PlayerPaddleSkin.src = assets.TopHat;
       }
       if (skinOn === 3) {
-        PlayerPaddleSkin.src = ChristmasHat;
+        assets.PlayerPaddleSkin.src = assets.ChristmasHat;
       }
       if (skinOn === 4) {
-        PlayerPaddleSkin.src = RedBelt;
+        assets.PlayerPaddleSkin.src = assets.RedBelt;
       }
       SkinSelectorPaused = false;
       SkinSelectorOpen = false;
@@ -280,10 +302,6 @@ function reset_ball() {
     balls[i].bounds.position = new Point(400, 200);
     balls[i].bounds.position.y += getRndInteger(-5, 5);
   }
-  player.bounds.position.x = 100;
-  player.bounds.position.y = 165;
-  computer.posX = 900;
-  computer.posY = 265;
   screenShaking = false;
 }
 function setup_keyboard() {
@@ -304,7 +322,7 @@ function draw_score(ctx) {
 function Flip_Controlls() {
   if (FlipedControlles === true) {
     if (SoundedPlayed === false && DEBUG.sound) {
-      soundEFX3.play();
+      assets.soundEFX2.play(); 
       SoundedPlayed = true;
     }
   }
@@ -360,8 +378,8 @@ function getRndInteger(min, max) {
 }
 function play_hit_wall_sound() {
   if (DEBUG.sound === true) {
-    soundEFX1.currentTime = 0.1;
-    soundEFX1.play();
+    assets.soundEFX1.currentTime = 0.1;
+    assets.soundEFX1.play();
   }
 }
 function checkScore() {
@@ -398,20 +416,21 @@ function start_splash() {
 }
 function play_hit_paddle_sound() {
   if (DEBUG.sound) {
-    soundEFX2.play();
+    assets.soundEFX2.play();
   }
 }
+let ballDirection = null
 function check_wall_collisions() {
   // check top wall
   for (let i = 0; i < balls.length; i++) {
     if (balls[i].bounds.position.y <= 20) {
-      balls[i].bounds.position.y = 20;
       particles.start_particles(
         balls[i].bounds.position.x,
         balls[i].bounds.position.y
       );
-      random_y_angle = getRndInteger(1, 5);
-      balls[i].bounds.position.y += random_y_angle;
+      balls[i].bounds.position.y = 50;
+      ballDirection = "down"
+      console.log(ballDirection)
       play_hit_wall_sound();
       start_screen_shake();
     }
@@ -422,10 +441,10 @@ function check_wall_collisions() {
         balls[i].bounds.position.y
       );
       balls[i].bounds.position.y = 600;
-      random_y_angle = getRndInteger(-5, -1);
-      balls[i].bounds.position.y += random_y_angle;
+      ballDirection = "up"
       play_hit_wall_sound();
       start_screen_shake();
+
     }
   }
   if (player.bounds.position.y <= 0) {
@@ -484,12 +503,19 @@ function start_screen_shake() {
     }, 200);
   }
 }
+let Yangle = 1
+let y = null
+let paddleDirection = null
+let paddleColided = false;
+function checkPaddleDirection() {
+}
 function check_paddle_collisons() {
   // move the ball
   for (let i = 0; i < balls.length; i++) {
+    balls[i].bounds.position.y += Yangle
     let new_ball_x = (balls[i].bounds.position.x += balls[i].x_speed);
     let new_ball_bounds = balls[i].bounds.translate(
-      new Point(balls[i].x_speed, balls[i].randomeY)
+      new Point(balls[i].x_speed, randomeY)
     );
     //if ball hit player paddle
     //reverse direction
@@ -497,14 +523,23 @@ function check_paddle_collisons() {
       new_ball_bounds.intersects(player.bounds) ||
       player.bounds.intersects(new_ball_bounds)
     ) {
+      if (player.bounds.position.y > y) {
+        console.log("Down")
+          ballDirection = "down"
+      }
+      if (player.bounds.position.y < y) {
+        console.log("Up")
+          ballDirection = "up"
+      }
       //flip speed
+      paddleColided = true
       balls[i].x_speed *= -1;
       balls[i].bounds.position.y += getRndInteger(-5, 5);
       play_hit_paddle_sound();
       //new random y angle
       //calc new ball position
       balls[i].bounds = balls[i].bounds.translate(
-        new Point(balls[i].x_speed, balls[i].randomeY)
+        new Point(balls[i].x_speed, randomeY)
       );
       particles.start_particles(
         balls[i].bounds.position.x,
@@ -512,6 +547,9 @@ function check_paddle_collisons() {
       );
       start_screen_shake();
       balls[i].bounds.position.x = new_ball_x;
+      if (paddleDirection === "up") {
+        PaddleMovment = "up"
+      }
     }
     if (
       new_ball_x >= 880 &&
@@ -603,6 +641,7 @@ function drawDebugBounds() {
     }
   }
 }
+let EnteredPresed = false;
 function drawStartScreen() {
   if ((mode = "startScreen")) {
     ctx.fillStyle = "gray";
@@ -621,25 +660,28 @@ function drawStartScreen() {
     ctx.fillText("Load", c.width / 2 - 50, 340);
     ctx.fillText("Settings", c.width / 2 - 80, 440);
 
-
     if (mode === "startScreen") {
       if (nav_keys.get("ArrowDown") === true) {
         menuItemOn += 1
-        console.log(menuItemOn);
       }
       if (nav_keys.get("ArrowUp") === true) { 
         menuItemOn -= 1;
-        console.log(menuItemOn);
-
       }
       if (current_keys.get("Enter") === true) {
         if (menuItemOn === 2) {
-          levelSelectVisable = true;
+          EnteredPresed = true;
         }
         if (menuItemOn === 3) {
         }
         if (menuItemOn === 4) {
+          mode = "settings"
         }
+      }
+      if (current_keys.get("Enter") === false) {
+        if (EnteredPresed === true) {
+          levelSelectVisable = true;
+        }
+        EnteredPresed = false;
       }
       if (levelSelectVisable === true) {
         level_select.set_visible(true);
@@ -664,6 +706,17 @@ function drawStartScreen() {
   }
 }
 function update() {
+  for (let i = 0; i < balls.length; i++) {
+    console.log("BallDirection is" + ballDirection)
+  if (ballDirection === "up") {
+    console.log("Going Up")
+    balls[i].bounds.position.y -= 5;
+
+  }
+  if (ballDirection === "down") {
+    balls[i].bounds.position.y += 3;
+  }
+}
   drawStartScreen();
   game_check_keyboard(ctx);
   if (mode === "levelSelect") {
@@ -714,10 +767,11 @@ function update() {
   checkSettingsWindow(ctx);
   if (SkinSelectorPaused) {
     clear_screen(ctx);
-    draw_settings_window();
+    draw_SkinSelector();
   } else {
     // move the computer
     if (mode === "play") {
+      checkPaddleDirection();
       update_computer_paddle(ctx);
       //check for wall collisions
       check_wall_collisions(ctx);
@@ -745,7 +799,9 @@ function update() {
       ctx.restore();
       drawDebugBounds();
       EnemyEatPaddle();
+      y = player.bounds.position.y
     }
+    CheckSettingsMenu();
   }
 
   nav_keys.clear();

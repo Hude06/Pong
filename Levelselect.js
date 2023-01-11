@@ -56,7 +56,6 @@ export class LevelSelector {
         this.levelOn -= 1
     }
     checkLevelLength() {
-        console.log(this.levelOn)
         if (this.levelOn > this.levels.length) {
             this.levelOn = 1;
         }
@@ -66,23 +65,18 @@ export class LevelSelector {
     }
 
     check_input(current_keys,showing_splash,mode) {
-        console.log(showing_splash)
-        if (showing_splash === false) {
+        if (mode === "levelSelect") {
             if (current_keys.get("ArrowRight") === true) {
                 this.select_next_level()
                 this.checkLevelLength();
-
             }
             if (current_keys.get("ArrowLeft") === true) {
                 this.select_prev_level()
                 this.checkLevelLength();
             }
-            setTimeout(() => {
-                if (current_keys.get("Enter") === true) {
-                    console.log("Starting LEVEL")
-                    this.start_level()
-                }              
-            }, 200)
+            if (current_keys.get("Enter") === true) {
+                this.start_level()
+            }
         }
     }
 
