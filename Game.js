@@ -72,8 +72,6 @@ let skinOn = 1;
 let checkHealthBarVisable = true;
 let current_enemy_bounds = new Bounds(new Point(500, 325), new Size(10, 10));
 let levelSelectVisable = false;
-let loadSelected = false;
-let startSelected = false;
 let SoundedPlayed = false;
 assets.RedBeltSkin.src = "/RedBelt.png";
 assets.PlainSkin.src = "/PlainSkin.png";
@@ -450,8 +448,8 @@ function game_check_keyboard() {
 
   if (current_keys.get("ArrowLeft") === true) {
     if (keyboard.arrowDownPressed === false) {
-      arrowUpPressed = false;
-      arrowDownPressed = true;
+      keyboard.arrowUpPressed = false;
+      keyboard.arrowDownPressed = true;
     }
   }
   if (current_keys.get("ArrowLeft") === false) {
@@ -635,12 +633,12 @@ function drawStartScreen() {
 
       }
       if (current_keys.get("Enter") === true) {
-        if (menuItemOn === 1) {
+        if (menuItemOn === 2) {
           levelSelectVisable = true;
         }
-        if (menuItemOn === 2) {
-        }
         if (menuItemOn === 3) {
+        }
+        if (menuItemOn === 4) {
         }
       }
       if (levelSelectVisable === true) {
@@ -670,7 +668,7 @@ function update() {
   game_check_keyboard(ctx);
   if (mode === "levelSelect") {
     if (level_select.visible) {
-      level_select.check_input(nav_keys, showing_splash);
+      level_select.check_input(nav_keys, showing_splash,mode);
       if (level_select.finished) {
         mode = "play";
         // let ball2 = new Ball();

@@ -65,7 +65,7 @@ export class LevelSelector {
         }
     }
 
-    check_input(current_keys,showing_splash) {
+    check_input(current_keys,showing_splash,mode) {
         console.log(showing_splash)
         if (showing_splash === false) {
             if (current_keys.get("ArrowRight") === true) {
@@ -77,9 +77,12 @@ export class LevelSelector {
                 this.select_prev_level()
                 this.checkLevelLength();
             }
+            setTimeout(() => {
                 if (current_keys.get("Enter") === true) {
+                    console.log("Starting LEVEL")
                     this.start_level()
-            }
+                }              
+            }, 200)
         }
     }
 
