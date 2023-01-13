@@ -36,6 +36,7 @@ let assets = {
   PaddelSkinAI: new Image(),
   TopHatSkin: new Image(),
   ChristmasHatSkin: new Image(),
+  GlassesSkin: new Image(),
   PlainSkin: new Image(),
   RedBeltSkin: new Image(),
   fireball: new Image(),
@@ -43,11 +44,11 @@ let assets = {
   soundEFX2: new Audio("/click.wav"),
   soundEFX3: new Audio("/ControllsFliped.wav"),
   TopHat: "/TopHatSkin.png",
+  Glasses: "/Glasses.png",
   ChristmasHat: "/ChristMasSkin.png",
   Plain: "/PlainSkin.png",
   RedBelt: "/RedBelt.png",
 };
-let PaddleMovment = null
 let keyboard = {
   LeftPressed: false,
   RightPressed: false,
@@ -59,7 +60,6 @@ let particles = new ParticleSource();
 particles.particles_enabled = DEBUG.particles;
 const splashScreen = document.querySelector(".splash");
 const shake_enabled = true;
-let random_y_angle = null;
 let hitEnemy = false;
 let SkinSelectorPaused = false;
 let showing_splash = true;
@@ -74,6 +74,7 @@ let checkHealthBarVisable = true;
 let current_enemy_bounds = new Bounds(new Point(500, 325), new Size(10, 10));
 let levelSelectVisable = false;
 let SoundedPlayed = false;
+assets.GlassesSkin.src = "/Glasses.png";
 assets.RedBeltSkin.src = "/RedBelt.png";
 assets.PlainSkin.src = "/PlainSkin.png";
 assets.TopHatSkin.src = "/TopHatSkin.png";
@@ -85,6 +86,10 @@ assets.CurrentEnemy.src = null;
 let FireBallPosx = 500;
 let FireBallPosy = 325; //CurrentEnemyPosY;
 let menuItemOn = 3;
+let mainColor = {
+  gray: "gray"
+}
+
 const LEVEL1 = new Level();
 LEVEL1.fireBallActive = false;
 LEVEL1.AISpeed = 2;
@@ -94,6 +99,8 @@ LEVEL1.Enemy = true;
 LEVEL1.enemy_src = "/Snail.png";
 LEVEL1.EnemySpeed = 1;
 LEVEL1.ballcount = 1;
+
+
 const LEVEL2 = new Level();
 LEVEL2.fireBallActive = true;
 LEVEL2.AISpeed = 2;
@@ -102,6 +109,8 @@ LEVEL2.CurrentEnemyH = 16 * 3;
 LEVEL2.Enemy = true;
 LEVEL2.enemy_src = "/FireMan.png";
 LEVEL2.EnemySpeed = 1;
+
+
 let randomeY = getRndInteger(-5, 5);
 const LEVELS = [LEVEL1, LEVEL2];
 let mode = "splash";
@@ -130,19 +139,19 @@ function drawFireBall() {
     ctx.drawImage(assets.fireball, FireBallPosx, FireBallPosy, 16 * 3, 16 * 3);
   }
 }
-let SettingsMenuVisable = false;
+let SkinSelectorVisable = false;
 let settings = {
   music: false,
   soundsEffects: DEBUG.sound,
   particles: DEBUG.particles,
 };
-function CheckSettingsMenu() {
+function  CheckSkinSelectorMenu() {
   if (mode === "settings") {
-    SettingsMenuVisable = true  
+    SkinSelectorVisable = true  
   }
-  if (SettingsMenuVisable === true) {
+  if (SkinSelectorVisable === true) {
     ctx.fillRect(0,0,c.width,c.height);
-    ctx.fillStyle = "red"
+    ctx.fillStyle = "gray"
     ctx.fillRect(100,50,100,50)
     ctx.font = "40px serif";
     ctx.fillStyle = "black";
@@ -177,27 +186,22 @@ function draw_enemy() {
       current_enemy_bounds.size.w,
       current_enemy_bounds.size.h
     );
-    if (
-      player.bounds.position.y - 30 + player.bounds.size.w <=
-      current_enemy_bounds.position.y
-    ) {
+    if (player.bounds.position.y  <= current_enemy_bounds.position.y) {
       current_enemy_bounds.position.y -= current_level.EnemySpeed;
     }
-    if (player.bounds.position.y - 30 >= current_enemy_bounds.position.y) {
+    if (player.bounds.position.y >= current_enemy_bounds.position.y) {
       current_enemy_bounds.position.y += current_level.EnemySpeed;
     }
-    if (player.bounds.position.y - 30 <= current_enemy_bounds.position.x) {
+    if (player.bounds.position.x+10 <= current_enemy_bounds.position.x) {
       current_enemy_bounds.position.x -= current_level.EnemySpeed;
-    }
-    if (player.bounds.position.y - 30 >= current_enemy_bounds.position.x) {
-      current_enemy_bounds.position.x += current_level.EnemySpeed;
+
     }
   }
 }
 function draw_SkinSelector() {
   if (SkinSelectorOpen === true) {
-    ctx.imageSmoothingEnabled = true;
-    ctx.fillStyle = "red";
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = mainColor.gray;
     ctx.fillRect(0, 0, c.width, c.height);
     ctx.fillStyle = "blue";
     let ofset = 10;
@@ -250,7 +254,7 @@ function draw_SkinSelector() {
     ctx.drawImage(assets.TopHatSkin, 340, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(assets.ChristmasHatSkin, 350 + 140, 80, 14 * 1.2, 70 * 1.2);
     ctx.drawImage(assets.RedBeltSkin, 350 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
-
+    ctx.drawImage(assets.GlassesSkin, 500 + 145 * 2, 80, 14 * 1.2, 70 * 1.2);
     if (current_keys.get("Enter") === true) {
       if (skinOn === 1) {
         assets.PlayerPaddleSkin.src = assets.Plain;
@@ -264,9 +268,27 @@ function draw_SkinSelector() {
       if (skinOn === 4) {
         assets.PlayerPaddleSkin.src = assets.RedBelt;
       }
+      if (skinOn === 5) {
+        assets.PlayerPaddleSkin.src = assets.Glasses;
+      }
       SkinSelectorPaused = false;
       SkinSelectorOpen = false;
     }
+  }
+}
+
+function drawWinScreen() {
+  if (mode === "WinScreen") {
+    ctx.fillStyle = mainColor.gray
+    ctx.fillRect(0,0,c.width,c.height)
+    ctx.font = "30px Arial";
+    ctx.fillText("Winner",100,100)
+  }
+}
+function CheckIfEnemyALive() {
+  if (current_level.Enemy === false) {
+    console.log("Enemy Died")
+    mode = "WinScreen"
   }
 }
 function checkSettingsWindow() {
@@ -781,6 +803,7 @@ function update() {
       particles.update_particles(ctx);
       Flip_Controlls(ctx);
       CheckEnemyHealth();
+      CheckIfEnemyALive();
       ctx.save();
       if (screenShaking === true) {
         ctx.translate(Math.random() * 30, 0);
@@ -799,9 +822,10 @@ function update() {
       ctx.restore();
       drawDebugBounds();
       EnemyEatPaddle();
+      drawWinScreen();
       y = player.bounds.position.y
     }
-    CheckSettingsMenu();
+     CheckSkinSelectorMenu();
   }
 
   nav_keys.clear();
