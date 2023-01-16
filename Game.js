@@ -40,14 +40,14 @@ let assets = {
   PlainSkin: new Image(),
   RedBeltSkin: new Image(),
   fireball: new Image(),
-  soundEFX1: new Audio("/explosion.wav"),
-  soundEFX2: new Audio("/click.wav"),
-  soundEFX3: new Audio("/ControllsFliped.wav"),
-  TopHat: "/TopHatSkin.png",
-  Glasses: "/Glasses.png",
-  ChristmasHat: "/ChristMasSkin.png",
-  Plain: "/PlainSkin.png",
-  RedBelt: "/RedBelt.png",
+  soundEFX1: new Audio("./explosion.wav"),
+  soundEFX2: new Audio("./click.wav"),
+  soundEFX3: new Audio("./ControllsFliped.wav"),
+  TopHat: "./TopHatSkin.png",
+  Glasses: "./Glasses.png",
+  ChristmasHat: ".ChristMasSkin.png",
+  Plain: "./PlainSkin.png",
+  RedBelt: "./RedBelt.png",
 };
 let keyboard = {
   LeftPressed: false,
@@ -56,6 +56,9 @@ let keyboard = {
 
   arrowDownPressed: false,
 };
+let Yangle = 1
+let y = null
+let paddleDirection = null
 let particles = new ParticleSource();
 particles.particles_enabled = DEBUG.particles;
 const splashScreen = document.querySelector(".splash");
@@ -74,16 +77,17 @@ let checkHealthBarVisable = true;
 let current_enemy_bounds = new Bounds(new Point(500, 325), new Size(10, 10));
 let levelSelectVisable = false;
 let SoundedPlayed = false;
-assets.GlassesSkin.src = "/Glasses.png";
-assets.RedBeltSkin.src = "/RedBelt.png";
-assets.PlainSkin.src = "/PlainSkin.png";
-assets.TopHatSkin.src = "/TopHatSkin.png";
-assets.ChristmasHatSkin.src = "/ChristMasSkin.png";
-assets.PaddelSkinAI.src = "/PlainSkin.png";
+assets.GlassesSkin.src = "./Glasses.png";
+assets.RedBeltSkin.src = "./RedBelt.png";
+assets.PlainSkin.src = "./PlainSkin.png";
+assets.TopHatSkin.src = "./TopHatSkin.png";
+assets.ChristmasHatSkin.src = "./ChristMasSkin.png";
+assets.PaddelSkinAI.src = "./PlainSkin.png";
 assets.fireball.src = "FireBall.png";
 assets.PlayerPaddleSkin.src = assets.Plain;
 assets.CurrentEnemy.src = null;
 let FireBallPosx = 500;
+let ballDirection = null
 let FireBallPosy = 325; //CurrentEnemyPosY;
 let menuItemOn = 3;
 let mainColor = {
@@ -96,7 +100,7 @@ LEVEL1.AISpeed = 2;
 LEVEL1.CurrentEnemyW = 16 * 5;
 LEVEL1.CurrentEnemyH = 16 * 5;
 LEVEL1.Enemy = true;
-LEVEL1.enemy_src = "/Snail.png";
+LEVEL1.enemy_src = "./Snail.png";
 LEVEL1.EnemySpeed = 1;
 LEVEL1.ballcount = 1;
 
@@ -107,7 +111,7 @@ LEVEL2.AISpeed = 2;
 LEVEL2.CurrentEnemyW = 16 * 3;
 LEVEL2.CurrentEnemyH = 16 * 3;
 LEVEL2.Enemy = true;
-LEVEL2.enemy_src = "/FireMan.png";
+LEVEL2.enemy_src = "./FireMan.png";
 LEVEL2.EnemySpeed = 1;
 
 
@@ -441,7 +445,6 @@ function play_hit_paddle_sound() {
     assets.soundEFX2.play();
   }
 }
-let ballDirection = null
 function check_wall_collisions() {
   // check top wall
   for (let i = 0; i < balls.length; i++) {
@@ -525,10 +528,6 @@ function start_screen_shake() {
     }, 200);
   }
 }
-let Yangle = 1
-let y = null
-let paddleDirection = null
-let paddleColided = false;
 function checkPaddleDirection() {
 }
 function check_paddle_collisons() {
